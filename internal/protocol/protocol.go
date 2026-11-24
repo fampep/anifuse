@@ -52,3 +52,20 @@ type ProviderInfo struct {
 	SiteURL  string `json:"siteUrl,omitempty"`
 	Bundled  bool   `json:"bundled"`
 }
+
+// LatestEntry is one row of the aggregated newest-episodes feed. AnilistID
+// is set only when the site exposes it on its listing.
+type LatestEntry struct {
+	Provider string `json:"provider"`
+	Title    string `json:"title"`
+	Episode  int    `json:"episode,omitempty"`
+	AnilistID int   `json:"anilistId,omitempty"`
+	ImageURL string `json:"imageUrl,omitempty"`
+	SiteURL  string `json:"siteUrl,omitempty"`
+	UpdatedAt string `json:"updatedAt,omitempty"`
+}
+
+// LatestResponse is the GET /v1/latest body.
+type LatestResponse struct {
+	Latest []LatestEntry `json:"latest"`
+}

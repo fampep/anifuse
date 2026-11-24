@@ -52,8 +52,7 @@ func (r *Registry) Get(id string) resolve.Provider {
 
 // Resolve tries the pinned provider, or every provider in order when none
 // is pinned, and returns the first non-empty source list.
-func (r *Registry) Resolve(ctx context.Context, req resolve.Request) ([]protocol.Source, error) {
-	var attempts []resolve.Provider
+func (r *Registry) Resolve(ctx context.Context, req resolve.Request) ([]protocol.Source, error) {	var attempts []resolve.Provider
 	if req.Provider != "" {
 		p := r.Get(req.Provider)
 		if p == nil {
@@ -88,4 +87,43 @@ func (r *Registry) Resolve(ctx context.Context, req resolve.Request) ([]protocol
 		return nil, first
 	}
 	return nil, &resolve.Error{Kind: resolve.KindMissing, Message: "no provider could resolve this episode (" + strings.Join(failures, "; ") + ")"}
+}
+
+// Latest aggregates the newest-episodes feeds of every provider that has
+// one. A pinned provider limits the list to that site; limit caps the
+// total entries returned.
+func (r *Registry) Latest(ctx context.Context, providerID string, limit int) ([]protocol.LatestEntry, error) {
+	if limit <= 0 {
+		limit = 40
+	}
+	if limit > 200 {
+		limit = 200
+	}
+	attempts := r.list
+	if providerID != "" {
+		p := r.Get(providerID)
+		if p == nil {
+			return nil, &resolve.Error{Kind: resolve.KindBlocked, Message: fmt.Sprintf("unknown provider %q", providerID)}
+		}
+		attempts = []resolve.Provider{p}
+	}
+	var out []protocol.LatestEntry
+	for _, p := range attempts {
+		feeder, ok := p.(resolve.LatestProvider)
+		if !ok {
+			continue
+		}
+		entries, err := feeder.Latest(ctx, limit)
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			if len(out) >= limit {
+				return out, nil
+			}
+			entry.Provider = p.ID()
+			out = append(out, entry)
+		}
+	}
+	return out, nil
 }

@@ -85,6 +85,23 @@
   .step p { color: var(--muted); }
   footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 26px 0 40px; color: var(--faint); font-size: 13px; }
   .warn { border: 1px solid rgba(245,166,35,0.35); background: rgba(245,166,35,0.06); border-radius: 16px; padding: 16px; font-size: 13.5px; color: var(--muted); }
+  .feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .feed .row {
+    display: flex; gap: 12px; align-items: center;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px;
+  }
+  .feed .row img {
+    width: 96px; height: 54px; object-fit: cover; border-radius: 10px;
+    background: #15161b; flex: none;
+  }
+  .feed .row .info { min-width: 0; }
+  .feed .row .t { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feed .row .m { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; align-items: center; }
+  .feed .row .ep { color: var(--accent); font-weight: 700; }
+  .feed .row .prov { font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
+  .feed .row a { color: var(--text); }
+  .feed .row a:hover { text-decoration: none; }
+  .feed-empty { color: var(--faint); font-size: 13.5px; }
 </style>
 </head>
 <body>
@@ -93,6 +110,7 @@
     <span class="brand">Ani<span class="dot">Fuse</span></span>
     <nav>
       <a href="#what">What it is</a>
+      <a href="#latest">Latest</a>
       <a href="#providers">Providers</a>
       <a href="#install">Install</a>
       <a href="#api">API</a>
@@ -124,6 +142,17 @@
       <div class="card"><h3>Failover built in</h3><p>Ask without a provider and it tries every bundled site in order until one has the episode.</p></div>
       <div class="card"><h3>Sub and dub aware</h3><p>Requests carry the language. Multi-audio masters serve both from one URL; dub-only rows are never played for a sub request.</p></div>
       <div class="card"><h3>Typed failures</h3><p><code>404</code> means “not here”, <code>502</code> means “site unreachable or challenged” — clients can tell the difference.</p></div>
+    </div>
+  </section>
+
+  <section id="latest">
+    <h2>Latest episodes</h2>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">
+      The newest episodes across every bundled provider, one feed.
+      Fresh from <code>GET /v1/latest</code>.
+    </p>
+    <div id="latest-feed" class="feed">
+      <p class="feed-empty">Loading the feed…</p>
     </div>
   </section>
 
@@ -198,5 +227,38 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
     AniFuse · Apache-2.0 · <a href="https://github.com/fampep/anifuse">github.com/fampep/anifuse</a>
   </footer>
 </div>
+
+<script>
+(() => {
+  const feed = document.getElementById("latest-feed");
+  if (!feed) return;
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+  fetch("/v1/latest")
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+    .then((data) => {
+      const rows = data.latest || [];
+      if (!rows.length) {
+        feed.innerHTML = '<p class="feed-empty">No episodes in the feed yet.</p>';
+        return;
+      }
+      feed.innerHTML = rows.map((e) => {
+        const img = e.imageUrl
+          ? `<img src="${esc(e.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+          : `<img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" style="opacity:0">`;
+        const ep = e.episode ? `<span class="ep">EP ${e.episode}</span>` : "";
+        const prov = `<span class="prov">${esc(e.provider)}</span>`;
+        const link = e.siteUrl
+          ? `<a href="${esc(e.siteUrl)}" target="_blank" rel="noopener noreferrer"><span class="t">${esc(e.title)}</span></a>`
+          : `<span class="t">${esc(e.title)}</span>`;
+        return `<div class="row">${img}<div class="info">${link}<div class="m">${ep}${prov}</div></div></div>`;
+      }).join("");
+    })
+    .catch(() => {
+      feed.innerHTML = '<p class="feed-empty">The feed could not be loaded.</p>';
+    });
+})();
+</script>
 </body>
 </html>

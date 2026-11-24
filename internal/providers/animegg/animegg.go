@@ -167,6 +167,55 @@ func (p *Provider) Resolve(ctx context.Context, req resolve.Request) ([]protocol
 	return sources, nil
 }
 
+// Latest lists the newest episodes from the homepage featured shelf.
+// Titles there are "Name 1180" with the number trailing; the listing
+// carries the series slug, the site link and the human date.
+func (p *Provider) Latest(ctx context.Context, limit int) ([]protocol.LatestEntry, error) {
+	if limit <= 0 {
+		limit = 40
+	}
+	page, err := p.client.GetText(ctx, p.origin+"/", p.origin+"/")
+	if err != nil {
+		return nil, resolve.Blocked(Name, err.Error())
+	}
+	if blocked(page.Code, page.Body) || page.Code < 200 || page.Code > 299 {
+		return nil, resolve.Blocked(Name, "homepage status "+strconv.Itoa(page.Code))
+	}
+	section := featuredRe.FindStringSubmatch(page.Body)
+	if section == nil {
+		return nil, nil
+	}
+	var entries []protocol.LatestEntry
+	for _, row := range featuredRowRe.FindAllStringSubmatch(section[1], -1) {
+		strong := strings.TrimSpace(htmlDecode(row[2]))
+		if strong == "" {
+			continue
+		}
+		title, episode := splitEpisodeNumber(strong)
+		entries = append(entries, protocol.LatestEntry{
+			Title:     title,
+			Episode:   episode,
+			SiteURL:   p.origin + row[1],
+			UpdatedAt: strings.TrimSpace(htmlDecode(row[3])),
+		})
+		if len(entries) >= limit {
+			break
+		}
+	}
+	return entries, nil
+}
+
+// splitEpisodeNumber splits "One Piece 1180" into title and episode.
+func splitEpisodeNumber(strong string) (string, int) {
+	match := trailingNumberRe.FindStringSubmatch(strong)
+	if match == nil {
+		return strong, 0
+	}
+	episode, _ := strconv.Atoi(match[1])
+	title := strings.TrimSpace(strings.TrimSuffix(strong, match[1]))
+	return title, episode
+}
+
 func (p *Provider) open(ctx context.Context, pageURL, referer string) (string, error) {
 	page, err := p.client.GetText(ctx, pageURL, referer)
 	if err != nil {
@@ -598,6 +647,11 @@ var (
 	episodeAnchorRe = regexp.MustCompile(`(?i)<a\s+href="(/[a-z0-9-]+-episode-(\d+))"([^>]*)>`)
 	mirrorRe        = regexp.MustCompile(`(?is)<div\s+id="(subbed|dubbed|raw)-([^"]+)"[^>]*>\s*<iframe[^>]*\ssrc="([^"]+)`)
 	fileRe          = regexp.MustCompile(`(?i)file\s*:\s*["']([^"']+)["']\s*,\s*label\s*:\s*["']([^"']+)["']`)
+
+	// Homepage featured shelf: slug, "Title 1180", human date.
+	featuredRe       = regexp.MustCompile(`(?is)<ul id="featured">([\s\S]*?)</ul>`)
+	featuredRowRe    = regexp.MustCompile(`(?is)<li><a href="(/series/[^"]+)"[^>]*>\s*<div><strong>([^<]+)</strong><span class="date">([^<]*)</span>`)
+	trailingNumberRe = regexp.MustCompile(`(\d+)\s*$`)
 )
 
 func attrRe(name string) *regexp.Regexp {

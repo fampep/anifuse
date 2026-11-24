@@ -70,6 +70,35 @@ Status mapping: `400` bad request, `404` the pinned provider (or every provider)
 
 An empty `sources` array is a failure. A dropped connection is worth one retry by the caller; an HTTP error is final.
 
+### `GET /v1/latest`
+
+Aggregated newest-episodes feed across the bundled providers.
+
+| Query | Notes |
+| --- | --- |
+| `provider` | Optional; pin one provider (e.g. `anihosts`). |
+| `limit` | Optional; default 40, max 200. |
+
+```json
+{
+  "latest": [
+    {
+      "provider": "anihosts",
+      "title": "Renegade Immortal",
+      "episode": 168,
+      "anilistId": 0,
+      "imageUrl": "https://img.example/backdrop.jpg",
+      "siteUrl": "https://anihosts.xyz/anime/renegade-immortal-55809",
+      "updatedAt": ""
+    }
+  ]
+}
+```
+
+`anilistId` is set only when the site exposes it on its listing; entries are
+meant to be opened at `siteUrl` or matched by title. Providers without a
+feed contribute nothing and are skipped.
+
 ### `GET /v1/providers`
 
 ```json

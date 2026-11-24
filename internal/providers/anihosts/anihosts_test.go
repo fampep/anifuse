@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/fampep/anifuse/internal/httpx"
+	"github.com/fampep/anifuse/internal/protocol"
 	"github.com/fampep/anifuse/internal/resolve"
 )
 
@@ -167,6 +168,45 @@ func TestResolveEndToEnd(t *testing.T) {
 	}
 }
 
+
+func TestLatestCardsKeepTitleEpisodeAndLink(t *testing.T) {
+	page := `<section class="yt-latest"><h2>Latest releases</h2><div class="yt-grid">
+	<div class="yt-card"><a class="yt-card__thumb-box" href="/anime/renegade-immortal-55809"><img alt="Renegade Immortal" class="img-fade yt-card__thumb" src="https://img.example/backdrop.jpg"><span class="yt-card__badge">EP 168</span></a><div class="yt-card__meta-row"><div class="yt-card__info"><h3 class="yt-card__title" title="Renegade Immortal">Renegade Immortal</h3></div></div><button type="button" class="yt-card__more"></button></div>
+	<div class="yt-card"><a class="yt-card__thumb-box" href="/anime/other-show-1"><img alt="Other" class="img-fade yt-card__thumb" src="https://img.example/other.jpg"><span class="yt-card__badge">NEW</span></a><div class="yt-card__meta-row"><div class="yt-card__info"><h3 class="yt-card__title" title="Other Show">Other Show</h3></div></div><button type="button" class="yt-card__more"></button></div>
+	</div></section>`
+	var entries []protocol.LatestEntry
+	for _, block := range latestCardRe.FindAllString(page, -1) {
+		href := latestHrefRe.FindStringSubmatch(block)
+		if href == nil {
+			continue
+		}
+		title := ""
+		if m := latestTitleRe.FindStringSubmatch(block); m != nil {
+			title = htmlUnescape(m[1])
+		}
+		episode := 0
+		if m := latestBadgeRe.FindStringSubmatch(block); m != nil {
+			episode, _ = strconv.Atoi(m[1])
+		}
+		image := ""
+		if m := latestImageRe.FindStringSubmatch(block); m != nil {
+			image = m[1]
+		}
+		entries = append(entries, protocol.LatestEntry{Title: title, Episode: episode, ImageURL: image, SiteURL: "https://anihosts.xyz" + href[1]})
+	}
+	if len(entries) != 2 {
+		t.Fatalf("entries = %d", len(entries))
+	}
+	if entries[0].Title != "Renegade Immortal" || entries[0].Episode != 168 || entries[0].SiteURL != "https://anihosts.xyz/anime/renegade-immortal-55809" {
+		t.Fatalf("entry0 = %+v", entries[0])
+	}
+	if entries[0].ImageURL != "https://img.example/backdrop.jpg" {
+		t.Fatalf("image = %q", entries[0].ImageURL)
+	}
+	if entries[1].Episode != 0 || entries[1].Title != "Other Show" {
+		t.Fatalf("entry1 = %+v", entries[1])
+	}
+}
 
 // pack builds a packed eval blob the way the host page does: every
 // dictionary word is swapped for its base-36 index, longest first.

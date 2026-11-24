@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/fampep/anifuse/internal/protocol"
@@ -34,6 +35,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /{$}", s.handleLanding)
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.HandleFunc("GET /v1/providers", s.handleProviders)
+	mux.HandleFunc("GET /v1/latest", s.handleLatest)
 	mux.HandleFunc("POST /v1/resolve", s.handleResolve)
 	return s.logRequests(mux)
 }
@@ -64,6 +66,19 @@ func (s *Server) handleProviders(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"providers": out})
+}
+
+// handleLatest aggregates the newest-episodes feeds of the bundled
+// providers, optionally pinned to one with ?provider=.
+func (s *Server) handleLatest(w http.ResponseWriter, r *http.Request) {
+	providerID := r.URL.Query().Get("provider")
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	entries, err := s.registry.Latest(r.Context(), providerID, limit)
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, protocol.LatestResponse{Latest: entries})
 }
 
 func (s *Server) handleResolve(w http.ResponseWriter, r *http.Request) {

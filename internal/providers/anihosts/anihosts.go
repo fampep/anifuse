@@ -129,6 +129,53 @@ func (p *Provider) Resolve(ctx context.Context, req resolve.Request) ([]protocol
 	return []protocol.Source{*source}, nil
 }
 
+// Latest lists the newest episodes from the homepage "Latest releases"
+// shelf. The listing carries title, episode badge, art and a site link.
+func (p *Provider) Latest(ctx context.Context, limit int) ([]protocol.LatestEntry, error) {
+	if limit <= 0 {
+		limit = 40
+	}
+	page, err := p.client.GetText(ctx, p.origin+"/", p.origin+"/")
+	if err != nil {
+		return nil, resolve.Blocked(Name, err.Error())
+	}
+	if httpx.Challenge(page.Code, page.Body) || page.Code < 200 || page.Code > 299 {
+		return nil, resolve.Blocked(Name, "homepage status "+strconv.Itoa(page.Code))
+	}
+	var entries []protocol.LatestEntry
+	for _, block := range latestCardRe.FindAllString(page.Body, -1) {
+		href := latestHrefRe.FindStringSubmatch(block)
+		if href == nil {
+			continue
+		}
+		title := ""
+		if t := latestTitleRe.FindStringSubmatch(block); t != nil {
+			title = htmlUnescape(t[1])
+		}
+		episode := 0
+		if b := latestBadgeRe.FindStringSubmatch(block); b != nil {
+			episode, _ = strconv.Atoi(b[1])
+		}
+		image := ""
+		if img := latestImageRe.FindStringSubmatch(block); img != nil {
+			image = img[1]
+		}
+		if title == "" {
+			continue
+		}
+		entries = append(entries, protocol.LatestEntry{
+			Title:    title,
+			Episode:  episode,
+			ImageURL: image,
+			SiteURL:  p.origin + href[1],
+		})
+		if len(entries) >= limit {
+			break
+		}
+	}
+	return entries, nil
+}
+
 // embedURLFor builds the embed page URL. Empty for invalid input.
 func embedURLFor(origin string, anilistID, episode int) string {
 	if anilistID <= 0 || episode <= 0 {
@@ -360,4 +407,25 @@ var (
 	trackRe  = regexp.MustCompile(`\{[^{}]*?file\s*:\s*"[^"]+"[^{}]*?\}`)
 	kindRe   = regexp.MustCompile(`kind\s*:\s*["']([^"']+)["']`)
 	labelRe  = regexp.MustCompile(`label\s*:\s*["']([^"']*)["']`)
+
+	// Homepage "Latest releases" cards: the thumbnail anchor names the
+	// title page, the badge carries "EP n", the h3 the title.
+	latestCardRe  = regexp.MustCompile(`(?s)<div class="yt-card">[\s\S]*?<button[^>]*yt-card__more`)
+	latestHrefRe  = regexp.MustCompile(`<a class="yt-card__thumb-box" href="(/anime/[^"]+)"`)
+	latestTitleRe = regexp.MustCompile(`yt-card__title"[^>]*title="([^"]+)"`)
+	latestBadgeRe = regexp.MustCompile(`yt-card__badge">EP (\d+)<`)
+	latestImageRe = regexp.MustCompile(`class="img-fade yt-card__thumb" src="([^"]+)"`)
 )
+
+// htmlUnescape decodes the few entities the homepage uses.
+func htmlUnescape(raw string) string {
+	return strings.NewReplacer(
+		"&amp;", "&",
+		"&quot;", `"`,
+		"&#34;", `"`,
+		"&#39;", "'",
+		"&apos;", "'",
+		"&lt;", "<",
+		"&gt;", ">",
+	).Replace(raw)
+}

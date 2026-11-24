@@ -96,6 +96,30 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
 
 Errors are non-2xx with `{"error":"human message"}`. An empty `sources` array is a failure. Full protocol in [docs/API.md](docs/API.md).
 
+### `GET /v1/latest`
+
+The aggregated newest-episodes feed: every provider that publishes one contributes rows. Optional `?provider=` pins one site, `?limit=` caps the total (default 40, max 200).
+
+```bash
+curl -sS "http://localhost:8080/v1/latest"
+```
+
+```json
+{
+  "latest": [
+    {
+      "provider": "anihosts",
+      "title": "Renegade Immortal",
+      "episode": 168,
+      "imageUrl": "https://img.example/backdrop.jpg",
+      "siteUrl": "https://anihosts.xyz/anime/renegade-immortal-55809"
+    }
+  ]
+}
+```
+
+The landing page renders this feed live under **Latest episodes**.
+
 ### `GET /v1/providers`
 
 Lists the bundled providers (`id`, `name`, `siteUrl`).

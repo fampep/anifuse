@@ -64,3 +64,10 @@ type Provider interface {
 	SiteURL() string
 	Resolve(ctx context.Context, req Request) ([]protocol.Source, error)
 }
+
+// LatestProvider is an optional capability: providers that can list the
+// newest episodes on their site implement it. The registry skips providers
+// that do not.
+type LatestProvider interface {
+	Latest(ctx context.Context, limit int) ([]protocol.LatestEntry, error)
+}

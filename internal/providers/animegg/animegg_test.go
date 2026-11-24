@@ -82,6 +82,30 @@ func TestFilesKeepOnlyPlayPaths(t *testing.T) {
 	}
 }
 
+func TestFeaturedFeedSplitsTitleAndEpisode(t *testing.T) {
+	page := `<ul id="featured">
+	<li><a href="/series/detectiveconan/latest-episode" id="detectiveconan"><div><strong>Detective Conan 1221</strong><span class="date">in 4 days</span></div></a></li>
+	<li><a href="/series/one-piece/latest-episode" id="one-piece"><div><strong>One Piece 1180</strong><span class="date">2 months ago</span></div></a></li>
+	</ul>`
+	section := featuredRe.FindStringSubmatch(page)
+	if section == nil {
+		t.Fatal("featured section not found")
+	}
+	rows := featuredRowRe.FindAllStringSubmatch(section[1], -1)
+	if len(rows) != 2 {
+		t.Fatalf("rows = %d", len(rows))
+	}
+	if rows[0][1] != "/series/detectiveconan/latest-episode" {
+		t.Fatalf("href = %q", rows[0][1])
+	}
+	if title, ep := splitEpisodeNumber("Detective Conan 1221"); title != "Detective Conan" || ep != 1221 {
+		t.Fatalf("split = %q %d", title, ep)
+	}
+	if title, ep := splitEpisodeNumber("Movie"); title != "Movie" || ep != 0 {
+		t.Fatalf("split(movie) = %q %d", title, ep)
+	}
+}
+
 func TestEpisodeAndEmbedValidation(t *testing.T) {
 	if got := episodeURL("/naruto-episode-12?x=1"); got != Origin+"/naruto-episode-12" {
 		t.Fatalf("episodeURL = %q", got)
