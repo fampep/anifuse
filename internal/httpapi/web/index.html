@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <title>AniFuse — one API for every anime source</title>
+<meta name="description" content="A self-hosted Go API that bundles anime site resolvers behind one /v1/resolve endpoint. Docker-ready, AniKitty extension protocol.">
+<meta name="theme-color" content="#0b0c0e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0c0e'/%3E%3Cpath d='M12 9.5v13l11-6.5z' fill='%23f5a623'/%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #0b0c0e;
@@ -41,7 +44,7 @@
   header nav { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
   header nav a { color: var(--muted); }
   header nav a:hover { color: var(--text); text-decoration: none; }
-  .hero { padding: 64px 0 40px; }
+  .hero { padding: 64px 0 40px; position: relative; z-index: 0; }
   .hero h1 { font-size: 44px; line-height: 1.1; letter-spacing: -1.2px; font-weight: 800; }
   .hero h1 .amber { color: var(--accent); }
   .hero p { color: var(--muted); font-size: 18px; max-width: 640px; margin-top: 14px; }
@@ -102,8 +105,49 @@
   .feed .row a { color: var(--text); }
   .feed .row a:hover { text-decoration: none; }
   .feed-empty { color: var(--faint); font-size: 13.5px; }
+
+  /* ---- motion ---- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.06); }
+  }
+  .hero h1 { animation: fadeUp 0.55s ease both; }
+  .hero p { animation: fadeUp 0.55s 0.12s ease both; }
+  .hero .chips { animation: fadeUp 0.55s 0.22s ease both; }
+  .hero .chips .chip { transition: border-color 0.2s ease, color 0.2s ease; }
+  .hero .chips .chip:hover { border-color: rgba(245,166,35,0.5); color: var(--text); }
+  .glow {
+    position: absolute; width: 480px; height: 480px; left: -120px; top: -60px;
+    border-radius: 50%; pointer-events: none; z-index: -1;
+    background: radial-gradient(circle, rgba(245,166,35,0.16), transparent 65%);
+    animation: glowPulse 7s ease-in-out infinite;
+  }
+  section, .warn, footer {
+    opacity: 0; transform: translateY(14px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  section.visible, .warn.visible, footer.visible { opacity: 1; transform: none; }
+  .card { transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease; }
+  .card:hover { transform: translateY(-3px); border-color: rgba(245,166,35,0.35); }
+  .feed .row { transition: transform 0.18s ease, border-color 0.18s ease; }
+  .feed .row:hover { transform: translateY(-2px); border-color: rgba(245,166,35,0.3); }
+  .feed .row img { transition: transform 0.25s ease; }
+  .feed .row:hover img { transform: scale(1.05); }
+  .feed .row { animation: fadeUp 0.45s ease both; }
+  header nav a { transition: color 0.18s ease; }
+  .step { transition: transform 0.18s ease; }
+  .step:hover { transform: translateX(4px); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    section, .warn, footer { opacity: 1; transform: none; }
+  }
 </style>
 </head>
+<noscript><style>section,.warn,footer{opacity:1;transform:none}</style></noscript>
 <body>
 <header>
   <div class="wrap">
@@ -120,6 +164,7 @@
 
 <div class="wrap">
   <div class="hero">
+    <div class="glow" aria-hidden="true"></div>
     <h1>One API for <span class="amber">every anime source</span>.</h1>
     <p>
       A self-hosted Go service that bundles anime site resolvers behind a single
@@ -230,6 +275,22 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
 
 <script>
 (() => {
+  // Reveal sections as they scroll into view.
+  const revealables = document.querySelectorAll("section, .warn, footer");
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      }
+    }, { threshold: 0.08 });
+    revealables.forEach((el) => observer.observe(el));
+  } else {
+    revealables.forEach((el) => el.classList.add("visible"));
+  }
+
   const feed = document.getElementById("latest-feed");
   if (!feed) return;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
@@ -243,7 +304,7 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
         feed.innerHTML = '<p class="feed-empty">No episodes in the feed yet.</p>';
         return;
       }
-      feed.innerHTML = rows.map((e) => {
+      feed.innerHTML = rows.map((e, i) => {
         const img = e.imageUrl
           ? `<img src="${esc(e.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
           : `<img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" style="opacity:0">`;
@@ -252,7 +313,7 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
         const link = e.siteUrl
           ? `<a href="${esc(e.siteUrl)}" target="_blank" rel="noopener noreferrer"><span class="t">${esc(e.title)}</span></a>`
           : `<span class="t">${esc(e.title)}</span>`;
-        return `<div class="row">${img}<div class="info">${link}<div class="m">${ep}${prov}</div></div></div>`;
+        return `<div class="row" style="animation-delay:${Math.min(i * 45, 500)}ms">${img}<div class="info">${link}<div class="m">${ep}${prov}</div></div></div>`;
       }).join("");
     })
     .catch(() => {
