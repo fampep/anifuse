@@ -90,8 +90,9 @@ func (r *Registry) Resolve(ctx context.Context, req resolve.Request) ([]protocol
 }
 
 // Latest aggregates the newest-episodes feeds of every provider that has
-// one. A pinned provider limits the list to that site; limit caps the
-// total entries returned.
+// one. Providers are merged round-robin so the top of the list shows every
+// site, not the first provider's whole page. A pinned provider limits the
+// list to that site; limit caps the total entries returned.
 func (r *Registry) Latest(ctx context.Context, providerID string, limit int) ([]protocol.LatestEntry, error) {
 	if limit <= 0 {
 		limit = 40
@@ -107,22 +108,42 @@ func (r *Registry) Latest(ctx context.Context, providerID string, limit int) ([]
 		}
 		attempts = []resolve.Provider{p}
 	}
-	var out []protocol.LatestEntry
+
+	type feed struct {
+		id      string
+		entries []protocol.LatestEntry
+	}
+	var feeds []feed
 	for _, p := range attempts {
 		feeder, ok := p.(resolve.LatestProvider)
 		if !ok {
 			continue
 		}
 		entries, err := feeder.Latest(ctx, limit)
-		if err != nil {
+		if err != nil || len(entries) == 0 {
 			continue
 		}
-		for _, entry := range entries {
+		for i := range entries {
+			entries[i].Provider = p.ID()
+		}
+		feeds = append(feeds, feed{id: p.ID(), entries: entries})
+	}
+
+	var out []protocol.LatestEntry
+	for round := 0; len(out) < limit && len(feeds) > 0; round++ {
+		added := false
+		for i := range feeds {
 			if len(out) >= limit {
-				return out, nil
+				break
 			}
-			entry.Provider = p.ID()
-			out = append(out, entry)
+			if round >= len(feeds[i].entries) {
+				continue
+			}
+			out = append(out, feeds[i].entries[round])
+			added = true
+		}
+		if !added {
+			break
 		}
 	}
 	return out, nil
