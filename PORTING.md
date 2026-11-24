@@ -11,9 +11,9 @@ parser tests that mirror its Kotlin test.
 | `anihosts` | `providers/anihosts/AniHostsServer.kt` | ✅ shipped | packed jwplayer unwrap + multi-audio master |
 | `anigato` | `providers/anigato/AnigatoServer.kt` | ✅ | `/api/episodes/{id}`, `/api/watch/{id}/sub|dub/{ep}` |
 | `animegg` | `providers/animegg/AnimeggServer.kt` | ✅ | search → series → episode → embed → `/play/` file |
-| `anikoto` | `providers/anikoto/AnikotoServer.kt` | ✅ | MegaPlay AES-CBC getSources (keys scraped from newclient.min.js) + PNG strip bytes; kotoplay.to /data fallback; home widget latest feed |
-| `gotaku` | `providers/gotaku/GotakuServer.kt` | ✅ on-device only | segment unwrap is a player-side transform; the hosted API cannot express it |
-| `reanime` | `providers/reanime/ReanimeServer.kt` | ✅ on-device only | Flix WASM crypto; playlist and segments are unwrapped on the phone |
+| `anikoto` | `providers/anikoto/AnikotoServer.kt` | ✅ | MegaPlay AES-CBC getSources (keys scraped from newclient.min.js, zero-padded like sourceEncPadKeyBytes) + PNG strip bytes; kotoplay.to /data fallback lane; home widget latest feed |
+| `gotaku` | `providers/gotaku/GotakuServer.kt` | ⛔ on-device only | segment unwrap is a player-side transform; the hosted API cannot express it |
+| `reanime` | `providers/reanime/ReanimeServer.kt` | ⛔ on-device only | Flix WASM crypto; playlist and segments are unwrapped on the phone |
 | `mkissa` | `providers/mkissa/MkissaServer.kt` | ✅ | aa-crypto boot/query lane ported (HMAC + AES-GCM); direct MP4/HLS plays |
 | `kaa` | `providers/kaa/KaaServer.kt` | ✅ | vidstream master on hls.krussdomi.com |
 | `animex` | `providers/animex/AnimexServer.kt` | ✅ | GraphQL search + REST sources, HLS even as deeznuts.txt |

@@ -27,8 +27,8 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `anigato` | anigato.lol | ✅ shipped |
 | `animegg` | animegg.org | ✅ shipped |
 | `anikoto` | anikoto.cz (+ kotoplay.to fallback) | ✅ shipped |
-| `gotaku` | gotaku.to | 🔜 porting (segment unwrap stays on-device) |
-| `reanime` | reanime.cz | 🔜 porting |
+| `gotaku` | gotaku.to | ⛔ on-device only (segment unwrap cannot be expressed by a hosted API) |
+| `reanime` | reanime.cz | ⛔ on-device only (WASM crypto unwraps each segment on the player) |
 | `mkissa` | mkissa.to | ✅ shipped |
 | `kaa` | kaa.lt | ✅ shipped |
 | `animex` | animex.one | ✅ shipped |
