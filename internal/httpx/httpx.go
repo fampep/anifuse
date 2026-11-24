@@ -49,6 +49,9 @@ func (c *Client) GetText(ctx context.Context, url, referer string) (Page, error)
 	req.Header.Set("User-Agent", c.UserAgent)
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	// Some sites reject the default Go Accept-Encoding: gzip that curl does
+	// not send; speak plain identity like a bare browser probe.
+	req.Header.Set("Accept-Encoding", "identity")
 	if referer != "" {
 		req.Header.Set("Referer", referer)
 	}
@@ -72,6 +75,7 @@ func (c *Client) PostJSON(ctx context.Context, url, body string, headers map[str
 	}
 	req.Header.Set("User-Agent", c.UserAgent)
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept-Encoding", "identity")
 	req.Header.Set("Content-Type", "application/json")
 	for name, value := range headers {
 		req.Header.Set(name, value)
