@@ -34,7 +34,7 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `animex` | animex.one | ✅ shipped |
 | `xanime` | xanime.app | ✅ shipped |
 | `aninz` | ani.nz | ✅ shipped |
-| `gogoanime` | gogoanime.by | 🔜 porting |
+| `gogoanime` | gogoanime.by | ✅ shipped |
 | `animegg` | animegg.org | ✅ shipped |
 | `aniwaves` | aniwaves.tv | ✅ shipped |
 | `anizone` | anizone.to | 🔜 porting |

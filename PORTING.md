@@ -19,7 +19,7 @@ parser tests that mirror its Kotlin test.
 | `animex` | `providers/animex/AnimexServer.kt` | ✅ | GraphQL search + REST sources, HLS even as deeznuts.txt |
 | `xanime` | `providers/xanime/XanimeServer.kt` | ✅ | AES-GCM request envelope ported; master is HLS, variants a-index-….ico |
 | `aninz` | `providers/aninz/AniNzServer.kt` | ✅ | settlar bootstrap + session token + media.settlar.io master |
-| `gogoanime` | `providers/gogoanime/GogoAnimeServer.kt` | 🔜 | |
+| `gogoanime` | `providers/gogoanime/GogoAnimeServer.kt` | ✅ | MegaPlay / MegaVid HLS with title scoring |
 | `aniwaves` | `providers/aniwaves/AniwavesServer.kt` | ✅ | ajax server list + embed getSources playlist |
 | `anizone` | `providers/anizone/AnizoneServer.kt` | 🔜 | |
 

@@ -16,6 +16,7 @@ import (
 	"github.com/fampep/anifuse/internal/providers/aninz"
 	"github.com/fampep/anifuse/internal/providers/anihosts"
 	"github.com/fampep/anifuse/internal/providers/animegg"
+	"github.com/fampep/anifuse/internal/providers/gogoanime"
 	"github.com/fampep/anifuse/internal/providers/animex"
 	"github.com/fampep/anifuse/internal/providers/kaa"
 	"github.com/fampep/anifuse/internal/providers/xanime"
@@ -39,6 +40,7 @@ func NewRegistry() *Registry {
 			kaa.New(),
 			xanime.New(),
 			animex.New(),
+			gogoanime.New(),
 		},
 	}
 }
