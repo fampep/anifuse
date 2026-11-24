@@ -15,7 +15,7 @@
 
 AniFuse is a small, fast resolver API. Give it an AniList id and an episode; it asks the bundled anime sites and answers with the direct stream URL the phone or browser can play — HLS masters, MP4 files, sidecar captions, and the headers the CDNs expect. It hosts nothing; it only resolves what the sites already serve publicly.
 
-It also speaks the [AniKitty extension protocol](https://github.com/fampep/anikitty-extensions/blob/main/spec/PROTOCOL.md), so a running instance is directly installable as an AniKitty source: paste `https://your-host.example.com` in the app and it becomes one more "Source" in the player.
+It also speaks the [AniKitty extension protocol](https://github.com/fampep/anikitty-extensions/blob/main/spec/PROTOCOL.md), so a running instance is directly installable as an AniKitty source: paste `https://your-host.example.com` in the app and it becomes one more "Source" in the player. AniFuse is now the **main AniKitty extension** — the app ships it first-class (see [`anikitty-extension.json`](anikitty-extension.json) at the repo root), while the old per-site on-device resolvers are deprecated.
 
 ## Providers
 
@@ -103,11 +103,13 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
 | `episode` | required, > 0 |
 | `audio` | `"sub"` (default) or `"dub"` |
 | `titleHint` | optional search helper |
-| `provider` | optional; pin one bundled provider. Omitted = race every healthy provider in parallel; the fastest working stream wins. |
+| `provider` | optional; pin one bundled provider. Omitted = ask every healthy provider in parallel and collect all their streams, ranked highest quality first. |
 
-The extra `provider` and `tookMs` fields name the winning site and the
-upstream resolve time; `cached: true` appears when a cached answer was
-replayed. Errors are non-2xx with `{"error":"human message"}`. An empty
+The extra `provider` and `tookMs` fields name the provider of the
+top-ranked stream and the upstream resolve time; `cached: true` appears
+when a cached answer was replayed. The `sources` array is every stream
+every provider found — deduplicated and ranked highest quality first.
+Errors are non-2xx with `{"error":"human message"}`. An empty
 `sources` array is a failure. Full protocol in [docs/API.md](docs/API.md).
 
 ### `GET /v1/latest`
@@ -162,8 +164,10 @@ Request counters and per-provider stats for dashboards.
 
 ## Speed
 
-- **Parallel fan-out** — an unpinned resolve races every healthy provider at
-  once; latency is the fastest working site, not the sum of all of them.
+- **Collecting fan-out** — an unpinned resolve asks every healthy provider
+  at once and merges every stream it finds, ranked highest quality first.
+  A short settle window after the first success keeps the answer fast even
+  when one site is slow.
 - **TTL cache + singleflight** — repeat resolves replay for 10 minutes,
   the latest feed for 3, and bursts of identical requests share one
   upstream fetch. `X-AniFuse-Cache: HIT|SHARED|MISS` tells you which.
@@ -187,8 +191,7 @@ Request counters and per-provider stats for dashboards.
 ## Design
 
 - **Stdlib only** — zero runtime dependencies; one static binary.
-- **Registry pattern** — a provider is a `Resolve(ctx, Request) ([]Source, error)`; adding a site is one package plus one line in `internal/providers/providers.go`.
-- **Typed failures** — `missing` (404), `blocked` / `unplayable` (502) so clients can tell "not here" from "try again later".
+- **Registry pattern** — a provider is a `Resolve(ctx, Request) ([]Source, error)`; adding a site is one package plus one line in `internal/providers/providers.go`.- **Typed failures** — `missing` (404), `blocked` / `unplayable` (502) so clients can tell "not here" from "try again later".
 - **Bounded everything** — per-request timeouts, response body caps, redirect caps, `ReadHeaderTimeout`.
 - **Container-safe** — runs as `nobody`, read-only rootfs, healthcheck included.
 - **Transform proxy for gotaku** — gotaku's CDN encrypts its HLS playlists (AES-GCM) and XORs the head of every segment. AniFuse unwraps both in real time on `/v1/gotaku/play` and `/v1/gotaku/seg`, so the streams play in any standard HLS player; nothing is stored and the proxy only accepts gotaku's `/p/1` and `/s/1` CDN paths on public hosts.

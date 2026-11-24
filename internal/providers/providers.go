@@ -1,14 +1,16 @@
 // Package providers is the resolver registry. Every anime site behind the
-// API implements resolve.Provider. An unpinned request races every healthy
-// provider in parallel and returns the fastest working stream; a pinned
-// request uses only that provider.
+// API implements resolve.Provider. An unpinned request asks every healthy
+// provider in parallel, merges all their streams and ranks them highest
+// quality first; a pinned request uses only that provider.
 package providers
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +41,10 @@ const (
 	// degradedRate marks a provider degraded when its reachability rate over
 	// at least three attempts sits below this fraction.
 	degradedRate = 0.34
+	// settleWindow is how long a resolve keeps collecting streams after the
+	// first success so the answer lists every provider's streams while
+	// staying fast.
+	settleWindow = 1200 * time.Millisecond
 )
 
 // Registry holds the bundled providers, their live health, and the resolve
@@ -256,9 +262,11 @@ func (r *Registry) resolveOrder() []resolve.Provider {
 }
 
 // Resolve tries the pinned provider, or races every healthy provider when
-// none is pinned. The fastest non-empty source list wins and the winner's id
-// is returned alongside it. All providers run with the request context, so a
-// returned winner cancels the losers.
+// none is pinned. Streams from every provider that answers are collected
+// (a short settle window after the first success keeps the answer fast),
+// deduplicated and ranked highest quality first. The winner is the
+// provider of the top-ranked stream. All providers run with the request
+// context, so a returned answer cancels the stragglers.
 func (r *Registry) Resolve(ctx context.Context, req resolve.Request) (sources []protocol.Source, winner string, err error) {
 	var attempts []resolve.Provider
 	if req.Provider != "" {
@@ -282,9 +290,9 @@ func (r *Registry) Resolve(ctx context.Context, req resolve.Request) (sources []
 		go func(p resolve.Provider) {
 			srcs, e := p.Resolve(ctx, req)
 			if errors.Is(e, context.Canceled) {
-				// A faster provider already won the race, so this attempt
-				// was cut short; it must not count against this provider's
-				// health.
+				// The settle window closed and the answer was already sent,
+				// so this attempt was cut short; it must not count against
+				// this provider's health.
 				results <- result{id: p.ID(), cancelled: true}
 				return
 			}
@@ -293,49 +301,151 @@ func (r *Registry) Resolve(ctx context.Context, req resolve.Request) (sources []
 		}(p)
 	}
 
-	collected := make(map[string]result, len(attempts))
-	for range attempts {
-		res := <-results
-		if res.cancelled {
-			continue
-		}
-		if res.err == nil && len(res.sources) > 0 {
-			return res.sources, res.id, nil
-		}
-		collected[res.id] = res
-	}
-	// Nothing won the race. Choose the most informative failure in
-	// failover priority order so the HTTP status stays deterministic.
-	var first *resolve.Error
-	var plain error
+	collected := make(map[string][]protocol.Source, len(attempts))
+	typedErrs := make(map[string]*resolve.Error, len(attempts))
+	plainErrs := make(map[string]error, len(attempts))
+	var settle *time.Timer
+	var settleC <-chan time.Time
+	haveSuccess := false
 	var failures []string
-	for _, p := range attempts {
-		res, ok := collected[p.ID()]
-		if !ok {
-			continue
-		}
-		if res.err == nil {
-			failures = append(failures, p.ID()+": empty sources")
-			continue
-		}
-		var typed *resolve.Error
-		if errors.As(res.err, &typed) {
-			if first == nil {
-				first = typed
+	for range attempts {
+		select {
+		case res := <-results:
+			if res.cancelled {
+				continue
 			}
-		} else if plain == nil {
-			plain = res.err
+			if res.err == nil && len(res.sources) > 0 {
+				collected[res.id] = res.sources
+				if !haveSuccess {
+					haveSuccess = true
+					// Give other healthy providers a brief moment to add
+					// their streams, then answer with everything collected.
+					settle = time.NewTimer(settleWindow)
+					settleC = settle.C
+				}
+				continue
+			}
+			if res.err != nil {
+				var typed *resolve.Error
+				if errors.As(res.err, &typed) {
+					typedErrs[res.id] = typed
+				} else {
+					plainErrs[res.id] = res.err
+				}
+				failures = append(failures, res.id+": "+res.err.Error())
+			} else {
+				failures = append(failures, res.id+": empty sources")
+			}
+		case <-settleC:
+			// The window after the first success is over; answer now with
+			// what arrived instead of waiting on slow stragglers.
+			if settle != nil {
+				settle.Stop()
+			}
+			out, top := r.aggregate(collected)
+			return out, top, nil
 		}
-		failures = append(failures, p.ID()+": "+res.err.Error())
 	}
-	if first != nil {
-		return nil, "", first
+	if settle != nil {
+		settle.Stop()
 	}
-	if plain != nil {
-		return nil, "", &resolve.Error{Kind: resolve.KindUnplayable, Message: plain.Error()}
+	if len(collected) > 0 {
+		out, top := r.aggregate(collected)
+		return out, top, nil
+	}
+	// Nothing succeeded. Choose the most informative failure in failover
+	// priority order so the HTTP status stays deterministic regardless of
+	// arrival order.
+	var firstErr *resolve.Error
+	var plainErr error
+	for _, p := range attempts {
+		if e, ok := typedErrs[p.ID()]; ok && firstErr == nil {
+			firstErr = e
+		}
+	}
+	if firstErr == nil {
+		for _, p := range attempts {
+			if e, ok := plainErrs[p.ID()]; ok && plainErr == nil {
+				plainErr = e
+			}
+		}
+	}
+	if firstErr != nil {
+		return nil, "", firstErr
+	}
+	if plainErr != nil {
+		return nil, "", &resolve.Error{Kind: resolve.KindUnplayable, Message: plainErr.Error()}
 	}
 	return nil, "", &resolve.Error{Kind: resolve.KindMissing, Message: "no provider could resolve this episode (" + strings.Join(failures, "; ") + ")"}
 }
+
+// aggregate merges every collected source list, drops duplicate URLs and
+// ranks the streams highest quality first. The winner is the provider of
+// the top-ranked stream.
+func (r *Registry) aggregate(collected map[string][]protocol.Source) ([]protocol.Source, string) {
+	type ranked struct {
+		src    protocol.Source
+		id     string
+		height int
+	}
+	var rows []ranked
+	seen := make(map[string]bool)
+	for _, p := range r.list {
+		for _, src := range collected[p.ID()] {
+			if seen[src.URL] {
+				continue
+			}
+			seen[src.URL] = true
+			rows = append(rows, ranked{src: src, id: p.ID(), height: qualityHeight(src)})
+		}
+	}
+	sort.SliceStable(rows, func(i, j int) bool {
+		if rows[i].height != rows[j].height {
+			return rows[i].height > rows[j].height
+		}
+		return rows[i].src.Label < rows[j].src.Label
+	})
+	out := make([]protocol.Source, len(rows))
+	winner := ""
+	for i, row := range rows {
+		out[i] = row.src
+		if i == 0 {
+			winner = row.id
+		}
+	}
+	return out, winner
+}
+
+// qualityHeight ranks a source's stated quality for the top-down sort,
+// mirroring the AniKitty app's label scoring.
+func qualityHeight(src protocol.Source) int {
+	probe := strings.ToLower(src.Quality + " " + src.Label + " " + src.QualityRating)
+	if m := qualityResRe.FindStringSubmatch(probe); m != nil {
+		if h, err := strconv.Atoi(m[1]); err == nil {
+			return h
+		}
+	}
+	if m := qualityNumRe.FindStringSubmatch(probe); m != nil {
+		if h, err := strconv.Atoi(m[1]); err == nil {
+			return h
+		}
+	}
+	switch {
+	case strings.Contains(probe, "4k") || strings.Contains(probe, "ultra") || strings.Contains(probe, "2160"):
+		return 2160
+	case strings.Contains(probe, "fhd") || strings.Contains(probe, "hd") || strings.Contains(probe, "high"):
+		return 1080
+	case strings.Contains(probe, "sd") || strings.Contains(probe, "low"):
+		return 480
+	default:
+		return 0
+	}
+}
+
+var (
+	qualityResRe = regexp.MustCompile(`(\d{3,4})\s*p`)
+	qualityNumRe = regexp.MustCompile(`\b(2160|1440|1080|720|480|360|240)\b`)
+)
 
 // record folds one attempt into the provider's health counters. A miss
 // proves the site answered, so it also clears a failing streak; only

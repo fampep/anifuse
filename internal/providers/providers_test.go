@@ -79,7 +79,7 @@ func TestResolveUnknownProvider(t *testing.T) {
 	}
 }
 
-func TestResolveRacesAndReturnsFirstSuccess(t *testing.T) {
+func TestResolveCollectsEveryProvidersStreams(t *testing.T) {
 	slow := &fakeProvider{id: "slow", delay: 200 * time.Millisecond, srcs: []protocol.Source{{URL: "https://slow.example/1.m3u8"}}}
 	fast := &fakeProvider{id: "fast", delay: 10 * time.Millisecond, srcs: []protocol.Source{{URL: "https://fast.example/1.m3u8"}}}
 	r := newFakeRegistry(slow, fast)
@@ -87,15 +87,73 @@ func TestResolveRacesAndReturnsFirstSuccess(t *testing.T) {
 	start := time.Now()
 	sources, winner, err := r.Resolve(context.Background(), resolve.Request{})
 	elapsed := time.Since(start)
+	if err != nil {
+		t.Fatalf("err = %v", err)
+	}
+	// Both providers answered inside the settle window: every stream is
+	// listed, deduplicated, in registry order for equal heights.
+	if len(sources) != 2 || sources[0].URL != "https://slow.example/1.m3u8" || sources[1].URL != "https://fast.example/1.m3u8" {
+		t.Fatalf("sources = %+v", sources)
+	}
+	if winner != "slow" {
+		t.Fatalf("winner = %q", winner)
+	}
+	if elapsed > 500*time.Millisecond {
+		t.Fatalf("collection took %v", elapsed)
+	}
+	if n := atomic.LoadInt32(&slow.calls); n != 1 {
+		t.Fatalf("slow called %d times", n)
+	}
+}
+
+func TestResolveSettleCutsSlowStragglers(t *testing.T) {
+	fast := &fakeProvider{id: "fast", delay: 10 * time.Millisecond, srcs: []protocol.Source{{URL: "https://fast.example/1.m3u8"}}}
+	slow := &fakeProvider{id: "slow", delay: 5 * time.Second, srcs: []protocol.Source{{URL: "https://slow.example/1.m3u8"}}}
+	r := newFakeRegistry(fast, slow)
+
+	start := time.Now()
+	sources, winner, err := r.Resolve(context.Background(), resolve.Request{})
+	elapsed := time.Since(start)
 	if err != nil || winner != "fast" || len(sources) != 1 || sources[0].URL != "https://fast.example/1.m3u8" {
 		t.Fatalf("sources=%v winner=%q err=%v", sources, winner, err)
 	}
-	if elapsed > 150*time.Millisecond {
-		t.Fatalf("race took %v; the slow provider stalled the result", elapsed)
+	// The answer left before the 5s provider finished: settle window, not
+	// the slowest provider, bounds the latency.
+	if elapsed > 3*time.Second {
+		t.Fatalf("settle did not cut the straggler: %v", elapsed)
 	}
-	// Both providers were attempted in parallel.
-	if n := atomic.LoadInt32(&slow.calls); n != 1 {
-		t.Fatalf("slow called %d times", n)
+}
+
+func TestResolveRanksHighestQualityFirst(t *testing.T) {
+	low := &fakeProvider{id: "low", srcs: []protocol.Source{
+		{URL: "https://low.example/480.m3u8", Quality: "480p", Label: "480p"},
+	}}
+	high := &fakeProvider{id: "high", srcs: []protocol.Source{
+		{URL: "https://high.example/1080.m3u8", Quality: "1080p", Label: "1080p"},
+		{URL: "https://high.example/720.m3u8", Quality: "720p", Label: "720p"},
+	}}
+	r := newFakeRegistry(low, high)
+	sources, winner, err := r.Resolve(context.Background(), resolve.Request{})
+	if err != nil {
+		t.Fatalf("err = %v", err)
+	}
+	if len(sources) != 3 {
+		t.Fatalf("sources = %+v", sources)
+	}
+	if sources[0].Quality != "1080p" || sources[1].Quality != "720p" || sources[2].Quality != "480p" {
+		t.Fatalf("not ranked top-down: %+v", sources)
+	}
+	if winner != "high" {
+		t.Fatalf("winner = %q", winner)
+	}
+	// Duplicates across providers collapse to one row.
+	dup := &fakeProvider{id: "dup", srcs: []protocol.Source{
+		{URL: "https://high.example/1080.m3u8", Quality: "1080p", Label: "1080p"},
+	}}
+	r2 := newFakeRegistry(high, dup)
+	sources2, _, err := r2.Resolve(context.Background(), resolve.Request{})
+	if err != nil || len(sources2) != 2 {
+		t.Fatalf("dedupe failed: %+v err=%v", sources2, err)
 	}
 }
 

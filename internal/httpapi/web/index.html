@@ -315,7 +315,7 @@
           <h2>What it does</h2>
           <div class="grid">
             <div class="card"><h3>Resolve, not host</h3><p>AniFuse hosts no video. It resolves the URLs the sites already serve publicly — and for gotaku, whose CDN encrypts playlists and segments, it unwraps them in real time through the built-in transform proxy.</p></div>
-            <div class="card"><h3>Failover is a race</h3><p>Ask without a provider and every healthy site is tried in parallel — the fastest working stream wins.</p></div>
+            <div class="card"><h3>Every stream, ranked</h3><p>Ask without a provider and every healthy site is tried in parallel — all their streams come back deduplicated and ranked highest quality first.</p></div>
             <div class="card"><h3>Sub and dub aware</h3><p>Requests carry the language. Multi-audio masters serve both from one URL; dub-only rows are never played for a sub request.</p></div>
             <div class="card"><h3>Typed failures</h3><p><code>404</code> means “not here”, <code>502</code> means “site unreachable or challenged” — clients can tell the difference.</p></div>
           </div>
@@ -375,7 +375,7 @@
       <div class="wrap">
         <div class="hero" style="padding-bottom:18px">
           <h1>The <span class="amber">playground</span></h1>
-          <p>Fire a real <code>POST /v1/resolve</code> from this page and watch the race. Providers without a pinned choice race in parallel — the fastest working stream wins.</p>
+          <p>Fire a real <code>POST /v1/resolve</code> from this page. Providers without a pinned choice are asked in parallel — every stream comes back, ranked highest quality first.</p>
         </div>
         <section>
           <div class="pg-form" id="pg-form">
@@ -436,7 +436,7 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
 
 <span class="c">// non-2xx — failure</span>
 { "error": "AniHosts does not have this episode." }</pre>
-          <p style="color:var(--muted);font-size:14px"><code>provider</code> names the winning site, <code>tookMs</code> the upstream resolve time, <code>cached</code> appears when a cached answer was replayed. Repeat answers come with <code>X-AniFuse-Cache: HIT</code> and <code>Cache-Control</code>.</p>
+          <p style="color:var(--muted);font-size:14px"><code>provider</code> names the provider of the top-ranked stream, <code>tookMs</code> the upstream resolve time, <code>cached</code> appears when a cached answer was replayed. The <code>sources</code> array lists every stream found, highest quality first. Repeat answers come with <code>X-AniFuse-Cache: HIT</code> and <code>Cache-Control</code>.</p>
         </section>
         <section class="reveal">
           <h2>GET /v1/latest</h2>
@@ -470,7 +470,7 @@ curl -sS "http://localhost:8080/v1/latest?search=frieren&amp;sort=ep"</pre>
             <div class="card"><h3>Registry pattern</h3><p>A provider is a <code>Resolve(ctx, Request)</code>; adding a site is one package plus one line.</p></div>
             <div class="card"><h3>Typed failures</h3><p><code>missing</code> → 404, <code>blocked</code> / <code>unplayable</code> → 502.</p></div>
             <div class="card"><h3>Bounded everything</h3><p>Per-request timeouts, response caps, redirect caps, container-safe defaults.</p></div>
-            <div class="card"><h3>Racing fan-out</h3><p>Unpinned resolves race every healthy provider; the fastest stream wins.</p></div>
+            <div class="card"><h3>Collecting fan-out</h3><p>Unpinned resolves ask every healthy provider; streams merge into one list ranked highest quality first.</p></div>
             <div class="card"><h3>Health memory</h3><p>Blocked sites cool off for a minute instead of slowing every race.</p></div>
             <div class="card"><h3>Cache + singleflight</h3><p>Identical requests share one upstream fetch; repeats replay from cache.</p></div>
             <div class="card"><h3>Transform proxy</h3><p>Gotaku's encrypted playlists and XOR'd segments are unwrapped server-side on <code>/v1/gotaku/play</code> and <code>/v1/gotaku/seg</code> — any HLS player can play them.</p></div>

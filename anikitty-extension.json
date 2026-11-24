@@ -2,13 +2,13 @@
   "apiVersion": 1,
   "id": "site.anikitty.anifuse",
   "name": "AniFuse",
-  "version": "1.0.0",
-  "description": "Self-hosted bundle of anime site resolvers behind one /v1/resolve API. Point baseUrl at your own deployment.",
+  "version": "1.1.0",
+  "description": "The main AniKitty extension: one hosted API fronting 13 anime sources with parallel failover, captions and live health. Point baseUrl at your own deployment to self-host.",
   "author": "fampep",
   "homepage": "https://github.com/fampep/anifuse",
-  "baseUrl": "https://your-host.example.com",
+  "baseUrl": "https://143-246-203-212.sslip.io",
   "resolvePath": "/v1/resolve",
-  "iconUrl": "https://www.google.com/s2/favicons?domain=anihosts.xyz&sz=128",
-  "siteUrl": "https://anihosts.xyz",
+  "iconUrl": "https://raw.githubusercontent.com/fampep/anifuse/main/docs/brand/anifuse-icon-512.png",
+  "siteUrl": "https://143-246-203-212.sslip.io",
   "nsfw": false
 }

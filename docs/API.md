@@ -22,7 +22,7 @@ Request:
 | `episode` | yes | 1-based episode number, > 0 |
 | `audio` | no | `"sub"` (default) or `"dub"` |
 | `titleHint` | no | Optional search helper for providers that need one (anizone requires it) |
-| `provider` | no | Pin one bundled provider; omitted = race every healthy provider in parallel |
+| `provider` | no | Pin one bundled provider; omitted = ask every healthy provider in parallel, collect all streams, ranked highest quality first |
 
 Success `200`:
 
@@ -66,9 +66,13 @@ Extra response fields on top of the AniKitty protocol:
 
 | Field | Notes |
 | --- | --- |
-| `provider` | The id of the provider whose answer won the race. |
+| `provider` | The provider of the top-ranked stream. |
 | `tookMs` | Upstream resolve time (fan-out start → result). |
 | `cached` | `true` when a cached answer was replayed instead of a live resolve. |
+
+The `sources` array is every stream every provider found, deduplicated by
+URL and ranked highest quality first (1080p before 720p and so on), so
+clients can simply play the first row or list them all.
 
 Errors — non-2xx with:
 
