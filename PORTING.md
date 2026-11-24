@@ -18,9 +18,9 @@ parser tests that mirror its Kotlin test.
 | `kaa` | `providers/kaa/KaaServer.kt` | ✅ | vidstream master on hls.krussdomi.com |
 | `animex` | `providers/animex/AnimexServer.kt` | ✅ | GraphQL search + REST sources, HLS even as deeznuts.txt |
 | `xanime` | `providers/xanime/XanimeServer.kt` | ✅ | AES-GCM request envelope ported; master is HLS, variants a-index-….ico |
-| `aninz` | `providers/aninz/AniNzServer.kt` | 🔜 | |
+| `aninz` | `providers/aninz/AniNzServer.kt` | ✅ | settlar bootstrap + session token + media.settlar.io master |
 | `gogoanime` | `providers/gogoanime/GogoAnimeServer.kt` | 🔜 | |
-| `aniwaves` | `providers/aniwaves/AniwavesServer.kt` | 🔜 | |
+| `aniwaves` | `providers/aniwaves/AniwavesServer.kt` | ✅ | ajax server list + embed getSources playlist |
 | `anizone` | `providers/anizone/AnizoneServer.kt` | 🔜 | |
 
 ## Adding a provider

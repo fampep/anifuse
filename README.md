@@ -33,10 +33,10 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `kaa` | kaa.lt | ✅ shipped |
 | `animex` | animex.one | ✅ shipped |
 | `xanime` | xanime.app | ✅ shipped |
-| `aninz` | ani.nz | 🔜 porting |
+| `aninz` | ani.nz | ✅ shipped |
 | `gogoanime` | gogoanime.by | 🔜 porting |
 | `animegg` | animegg.org | ✅ shipped |
-| `aniwaves` | aniwaves.tv | 🔜 porting |
+| `aniwaves` | aniwaves.tv | ✅ shipped |
 | `anizone` | anizone.to | 🔜 porting |
 
 Porting progress and per-site notes live in [PORTING.md](PORTING.md). The reference implementations are the bundled resolvers in [fampep/anikitty-extensions](https://github.com/fampep/anikitty-extensions/tree/main/providers).

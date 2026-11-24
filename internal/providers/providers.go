@@ -12,6 +12,8 @@ import (
 
 	"github.com/fampep/anifuse/internal/protocol"
 	"github.com/fampep/anifuse/internal/providers/anigato"
+	"github.com/fampep/anifuse/internal/providers/aniwaves"
+	"github.com/fampep/anifuse/internal/providers/aninz"
 	"github.com/fampep/anifuse/internal/providers/anihosts"
 	"github.com/fampep/anifuse/internal/providers/animegg"
 	"github.com/fampep/anifuse/internal/providers/animex"
@@ -30,6 +32,8 @@ func NewRegistry() *Registry {
 	return &Registry{
 		list: []resolve.Provider{
 			anihosts.New(),
+			aninz.New(),
+			aniwaves.New(),
 			anigato.New(),
 			animegg.New(),
 			kaa.New(),
