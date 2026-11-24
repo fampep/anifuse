@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>AniFuse — one API for every anime source</title>
+<style>
+  :root {
+    --bg: #0b0c0e;
+    --panel: #14151a;
+    --card: rgba(255,255,255,0.04);
+    --line: rgba(255,255,255,0.08);
+    --text: #f5f7fa;
+    --muted: rgba(245,247,250,0.62);
+    --faint: rgba(245,247,250,0.40);
+    --accent: #f5a623;
+    --accent-ink: #000000;
+    --code: #101114;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 22px; }
+  header {
+    padding: 26px 0 8px;
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: rgba(11,12,14,0.92);
+    backdrop-filter: blur(8px); z-index: 5;
+  }
+  header .wrap { display: flex; align-items: center; gap: 12px; }
+  .brand { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+  .brand .dot { color: var(--accent); }
+  header nav { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
+  header nav a { color: var(--muted); }
+  header nav a:hover { color: var(--text); text-decoration: none; }
+  .hero { padding: 64px 0 40px; }
+  .hero h1 { font-size: 44px; line-height: 1.1; letter-spacing: -1.2px; font-weight: 800; }
+  .hero h1 .amber { color: var(--accent); }
+  .hero p { color: var(--muted); font-size: 18px; max-width: 640px; margin-top: 14px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .chip {
+    font-size: 12.5px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
+    background: var(--card);
+  }
+  section { padding: 34px 0; }
+  section h2 {
+    font-size: 22px; letter-spacing: -0.4px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  section h2::before { content: ""; width: 5px; height: 20px; border-radius: 3px; background: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .card h3 { font-size: 15px; }
+  .card p { color: var(--muted); font-size: 13.5px; margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--faint); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+  td:first-child, th:first-child { padding-left: 0; }
+  .ok { color: #4cd964; }
+  .soon { color: var(--faint); }
+  pre {
+    background: var(--code); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 18px; overflow-x: auto; font: 13px/1.55 "SF Mono", Consolas, "Cascadia Code", monospace;
+    color: #e8eaed; margin-top: 12px;
+  }
+  pre .c { color: #6b7280; }
+  pre .k { color: var(--accent); }
+  .steps { display: grid; gap: 10px; counter-reset: step; }
+  .step { display: flex; gap: 12px; align-items: flex-start; }
+  .step::before {
+    counter-increment: step; content: counter(step);
+    min-width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center; font-size: 13px; font-weight: 700;
+  }
+  .step p { color: var(--muted); }
+  footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 26px 0 40px; color: var(--faint); font-size: 13px; }
+  .warn { border: 1px solid rgba(245,166,35,0.35); background: rgba(245,166,35,0.06); border-radius: 16px; padding: 16px; font-size: 13.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="brand">Ani<span class="dot">Fuse</span></span>
+    <nav>
+      <a href="#what">What it is</a>
+      <a href="#providers">Providers</a>
+      <a href="#install">Install</a>
+      <a href="#api">API</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>One API for <span class="amber">every anime source</span>.</h1>
+    <p>
+      A self-hosted Go service that bundles anime site resolvers behind a single
+      <code>POST /v1/resolve</code> endpoint. Give it an AniList id and an episode;
+      it asks the bundled sites and answers with the direct stream URL your player
+      can open — HLS masters, MP4 files, sidecar captions, and the headers the CDNs expect.
+    </p>
+    <div class="chips">
+      <span class="chip">Go 1.23 · zero dependencies</span>
+      <span class="chip">Docker · one container</span>
+      <span class="chip">AniKitty extension protocol</span>
+      <span class="chip">Apache-2.0</span>
+    </div>
+  </div>
+
+  <section id="what">
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="card"><h3>Resolve, not host</h3><p>AniFuse hosts no video. It resolves the URLs the sites already serve publicly and returns them to your player.</p></div>
+      <div class="card"><h3>Failover built in</h3><p>Ask without a provider and it tries every bundled site in order until one has the episode.</p></div>
+      <div class="card"><h3>Sub and dub aware</h3><p>Requests carry the language. Multi-audio masters serve both from one URL; dub-only rows are never played for a sub request.</p></div>
+      <div class="card"><h3>Typed failures</h3><p><code>404</code> means “not here”, <code>502</code> means “site unreachable or challenged” — clients can tell the difference.</p></div>
+    </div>
+  </section>
+
+  <section id="providers">
+    <h2>Bundled providers</h2>
+    <table>
+      <tr><th>ID</th><th>Site</th><th>Status</th></tr>
+      <tr><td><code>anihosts</code></td><td>anihosts.xyz</td><td class="ok">shipped</td></tr>
+      <tr><td><code>anigato</code></td><td>anigato.lol</td><td class="ok">shipped</td></tr>
+      <tr><td><code>animegg</code></td><td>animegg.org</td><td class="ok">shipped</td></tr>
+      <tr><td><code>anikoto</code></td><td>anikoto.cz + kotoplay.to</td><td class="soon">porting</td></tr>
+      <tr><td><code>gotaku</code></td><td>gotaku.to</td><td class="soon">porting</td></tr>
+      <tr><td><code>reanime</code></td><td>reanime.cz</td><td class="soon">porting</td></tr>
+      <tr><td><code>mkissa</code></td><td>mkissa.to</td><td class="soon">porting</td></tr>
+      <tr><td><code>kaa</code></td><td>kaa.lt</td><td class="soon">porting</td></tr>
+      <tr><td><code>animex</code></td><td>animex.one</td><td class="soon">porting</td></tr>
+      <tr><td><code>xanime</code></td><td>xanime.app</td><td class="soon">porting</td></tr>
+      <tr><td><code>aninz</code></td><td>ani.nz</td><td class="soon">porting</td></tr>
+      <tr><td><code>gogoanime</code></td><td>gogoanime.by</td><td class="soon">porting</td></tr>
+      <tr><td><code>aniwaves</code></td><td>aniwaves.tv</td><td class="soon">porting</td></tr>
+      <tr><td><code>anizone</code></td><td>anizone.to</td><td class="soon">porting</td></tr>
+    </table>
+    <p style="color:var(--faint);font-size:13px;margin-top:10px">Porting progress lives in <a href="https://github.com/fampep/anifuse/blob/main/PORTING.md">PORTING.md</a>.</p>
+  </section>
+
+  <section id="install">
+    <h2>Run your own</h2>
+    <div class="steps">
+      <div class="step"><p><b>Docker</b> — <code>docker run -p 8080:8080 ghcr.io/fampep/anifuse:latest</code>, or <code>docker compose up --build</code> from the repo.</p></div>
+      <div class="step"><p><b>From source</b> — <code>go run ./cmd/api</code> (Go 1.23, no external modules).</p></div>
+      <div class="step"><p><b>Check</b> — <code>curl http://localhost:8080/healthz</code> answers <code>{"status":"ok",...}</code>.</p></div>
+      <div class="step"><p><b>Install into AniKitty</b> — in the app, add an extension with this host's base URL. AniFuse speaks the extension protocol, so it appears as a Source in the player.</p></div>
+    </div>
+    <pre><span class="c"># resolve Attack on Titan episode 1, sub</span>
+curl -sS -X POST http://localhost:8080/v1/resolve \
+  -H 'content-type: application/json' \
+  -d '{"anilistId":16498,"episode":1,"audio":"sub"}'</pre>
+  </section>
+
+  <section id="api">
+    <h2>API</h2>
+    <table>
+      <tr><th>Endpoint</th><th>Purpose</th></tr>
+      <tr><td><code>POST /v1/resolve</code></td><td>Resolve <code>{anilistId, episode, audio, titleHint, provider?}</code> into playable sources.</td></tr>
+      <tr><td><code>GET /v1/providers</code></td><td>List the bundled providers.</td></tr>
+      <tr><td><code>GET /healthz</code></td><td>Liveness probe.</td></tr>
+    </table>
+    <pre><span class="c">// 200 — success</span>
+{
+  "sources": [{
+    "url": "https://cdn.example.com/ep1/master.m3u8",
+    "headers": { "Referer": "https://embed.example.com/", "User-Agent": "Mozilla/5.0" },
+    "label": "SUB",
+    "subtitles": [
+      { "url": "https://cdn.example.com/ep1/en.vtt", "label": "English", "language": "en", "mimeType": "text/vtt" }
+    ]
+  }]
+}
+
+<span class="c">// non-2xx — failure</span>
+{ "error": "AniHosts does not have this episode." }</pre>
+    <p style="color:var(--faint);font-size:13px;margin-top:8px">Full field semantics: <a href="https://github.com/fampep/anifuse/blob/main/docs/API.md">docs/API.md</a>.</p>
+  </section>
+
+  <div class="warn">
+    AniFuse is not affiliated with AniList, any studio, or any of the resolved sites.
+    It hosts no video and does not control the sites it queries. You are responsible
+    for the laws where you are and for the terms of every site it resolves. Use at your own risk.
+  </div>
+
+  <footer>
+    AniFuse · Apache-2.0 · <a href="https://github.com/fampep/anifuse">github.com/fampep/anifuse</a>
+  </footer>
+</div>
+</body>
+</html>

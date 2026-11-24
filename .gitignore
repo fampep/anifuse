@@ -1,0 +1,22 @@
+# Binaries
+/anifuse
+/dist/
+*.exe
+
+# Local env
+.env
+.env.*
+
+# Go
+vendor/
+coverage.out
+*.test
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
