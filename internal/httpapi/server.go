@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/fampep/anifuse/internal/cache"
+	"github.com/fampep/anifuse/internal/httpx"
 	"github.com/fampep/anifuse/internal/protocol"
 	"github.com/fampep/anifuse/internal/providers"
 	"github.com/fampep/anifuse/internal/resolve"
@@ -47,6 +48,7 @@ type Server struct {
 	latestCache    *cache.Cache
 	resolveGroup   *cache.Group
 	latestGroup    *cache.Group
+	gotakuProxy    *httpx.Client
 	startedAt      time.Time
 	resolveTimeout time.Duration
 	demo           bool
@@ -69,6 +71,7 @@ func NewServer(registry *providers.Registry, demo bool) *Server {
 		latestCache:    cache.New(envDuration("ANIFUSE_LATEST_CACHE_TTL", latestCacheTTL), 256),
 		resolveGroup:   &cache.Group{},
 		latestGroup:    &cache.Group{},
+		gotakuProxy:    httpx.NewClient(gotakuProxyUserAgent, 60*time.Second),
 		startedAt:      time.Now(),
 		resolveTimeout: envDuration("ANIFUSE_RESOLVE_TIMEOUT", defaultResolveTimeout),
 		demo:           demo,
@@ -84,6 +87,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/providers", s.handleProviders)
 	mux.HandleFunc("GET /v1/latest", s.handleLatest)
 	mux.HandleFunc("POST /v1/resolve", s.handleResolve)
+	mux.HandleFunc("GET /v1/gotaku/play", s.handleGotakuPlay)
+	mux.HandleFunc("GET /v1/gotaku/seg", s.handleGotakuSeg)
 	return s.logRequests(s.cors(mux))
 }
 
@@ -252,6 +257,7 @@ func (s *Server) handleResolve(w http.ResponseWriter, r *http.Request) {
 		var resp protocol.ResolveResponse
 		if err := json.Unmarshal(body, &resp); err == nil {
 			resp.Cached = true
+			absolutizeSources(&resp, r)
 			if fresh, err := json.Marshal(resp); err == nil {
 				body = fresh
 			}
@@ -296,8 +302,47 @@ func (s *Server) handleResolve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.resolveCache.Set(key, body, resolveCacheTTL)
+	// The cached body keeps provider-relative transform URLs; each response
+	// absolutizes them against its own host.
+	if fresh, err := absolutizeBody(body, r); err == nil {
+		body = fresh
+	}
 	w.Header().Set("X-AniFuse-Cache", cacheTag(shared))
 	s.writeCached(w, r, http.StatusOK, "application/json; charset=utf-8", body, 120)
+}
+
+// absolutizeSources rewrites provider-relative transform-proxy URLs (the
+// gotaku /v1/gotaku/... sources) against the request's own host, so cached
+// answers stay correct regardless of which hostname served them.
+func absolutizeSources(resp *protocol.ResolveResponse, r *http.Request) {
+	base := externalBase(r)
+	for i := range resp.Sources {
+		if strings.HasPrefix(resp.Sources[i].URL, "/v1/gotaku/") {
+			resp.Sources[i].URL = base + resp.Sources[i].URL
+		}
+	}
+}
+
+func absolutizeBody(body []byte, r *http.Request) ([]byte, error) {
+	var resp protocol.ResolveResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+	absolutizeSources(&resp, r)
+	return json.Marshal(resp)
+}
+
+// externalBase returns scheme://host for the client's view of this server,
+// honoring TLS and X-Forwarded-Proto for reverse-proxied deployments.
+func externalBase(r *http.Request) string {
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+		scheme = strings.TrimSpace(strings.Split(proto, ",")[0])
+	}
+	return scheme + "://" + r.Host
 }
 
 func (s *Server) handleMetrics(w http.ResponseWriter, r *http.Request) {

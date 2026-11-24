@@ -27,7 +27,7 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `anigato` | anigato.lol | ✅ shipped |
 | `animegg` | animegg.org | ✅ shipped |
 | `anikoto` | anikoto.cz (+ kotoplay.to fallback) | ✅ shipped |
-| `gotaku` | gotaku.to | ⛔ on-device only (segment unwrap cannot be expressed by a hosted API) |
+| `gotaku` | gotaku.to | ✅ shipped (plays through the built-in transform proxy) |
 | `reanime` | reanime.cz | ⛔ on-device only (WASM crypto unwraps each segment on the player) |
 | `mkissa` | mkissa.to | ✅ shipped |
 | `kaa` | kaa.lt | ✅ shipped |
@@ -191,6 +191,7 @@ Request counters and per-provider stats for dashboards.
 - **Typed failures** — `missing` (404), `blocked` / `unplayable` (502) so clients can tell "not here" from "try again later".
 - **Bounded everything** — per-request timeouts, response body caps, redirect caps, `ReadHeaderTimeout`.
 - **Container-safe** — runs as `nobody`, read-only rootfs, healthcheck included.
+- **Transform proxy for gotaku** — gotaku's CDN encrypts its HLS playlists (AES-GCM) and XORs the head of every segment. AniFuse unwraps both in real time on `/v1/gotaku/play` and `/v1/gotaku/seg`, so the streams play in any standard HLS player; nothing is stored and the proxy only accepts gotaku's `/p/1` and `/s/1` CDN paths on public hosts.
 
 ## Disclaimer
 

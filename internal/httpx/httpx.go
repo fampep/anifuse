@@ -153,6 +153,22 @@ func (c *Client) GetWithHeaders(ctx context.Context, url string, headers map[str
 	return Page{Code: resp.StatusCode, Body: string(body)}, nil
 }
 
+// Open performs a request and returns the raw response with the body
+// unread; the caller owns resp.Body.Close(). Unlike the Page helpers there
+// is no body cap, so large media (transform-proxy segments) can stream
+// through. The browser User-Agent is always set.
+func (c *Client) Open(ctx context.Context, method, url string, headers map[string]string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", c.UserAgent)
+	for name, value := range headers {
+		req.Header.Set(name, value)
+	}
+	return c.http.Do(req)
+}
+
 // Challenge reports whether a page or status looks like a bot wall.
 func Challenge(code int, body string) bool {
 	if code == 403 || code == 429 || code == 503 {
