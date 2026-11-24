@@ -29,7 +29,7 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `anikoto` | anikoto.cz (+ kotoplay.to fallback) | 🔜 porting |
 | `gotaku` | gotaku.to | 🔜 porting (segment unwrap stays on-device) |
 | `reanime` | reanime.cz | 🔜 porting |
-| `mkissa` | mkissa.to | 🔜 porting |
+| `mkissa` | mkissa.to | ✅ shipped |
 | `kaa` | kaa.lt | ✅ shipped |
 | `animex` | animex.one | ✅ shipped |
 | `xanime` | xanime.app | ✅ shipped |

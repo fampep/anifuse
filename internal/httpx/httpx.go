@@ -92,6 +92,28 @@ func (c *Client) PostJSON(ctx context.Context, url, body string, headers map[str
 	return Page{Code: resp.StatusCode, Body: string(data)}, nil
 }
 
+// GetWithHeaders fetches a page with explicit headers plus the browser UA.
+func (c *Client) GetWithHeaders(ctx context.Context, url string, headers map[string]string) (Page, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return Page{}, err
+	}
+	req.Header.Set("User-Agent", c.UserAgent)
+	for name, value := range headers {
+		req.Header.Set(name, value)
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return Page{}, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+	if err != nil {
+		return Page{}, err
+	}
+	return Page{Code: resp.StatusCode, Body: string(body)}, nil
+}
+
 // Challenge reports whether a page or status looks like a bot wall.
 func Challenge(code int, body string) bool {
 	if code == 403 || code == 429 || code == 503 {

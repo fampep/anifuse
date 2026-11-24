@@ -14,7 +14,7 @@ parser tests that mirror its Kotlin test.
 | `anikoto` | `providers/anikoto/AnikotoServer.kt` | ✅ on-device only | Flix/MegaPlay crypto + kotoplay fallback |
 | `gotaku` | `providers/gotaku/GotakuServer.kt` | ✅ on-device only | segment unwrap is a player-side transform; the hosted API cannot express it |
 | `reanime` | `providers/reanime/ReanimeServer.kt` | ✅ on-device only | Flix WASM crypto; playlist and segments are unwrapped on the phone |
-| `mkissa` | `providers/mkissa/MkissaServer.kt` | ✅ on-device only | aa-crypto lane cannot travel over the HTTP protocol |
+| `mkissa` | `providers/mkissa/MkissaServer.kt` | ✅ | aa-crypto boot/query lane ported (HMAC + AES-GCM); direct MP4/HLS plays |
 | `kaa` | `providers/kaa/KaaServer.kt` | ✅ | vidstream master on hls.krussdomi.com |
 | `animex` | `providers/animex/AnimexServer.kt` | ✅ | GraphQL search + REST sources, HLS even as deeznuts.txt |
 | `xanime` | `providers/xanime/XanimeServer.kt` | ✅ | AES-GCM request envelope ported; master is HLS, variants a-index-….ico |
