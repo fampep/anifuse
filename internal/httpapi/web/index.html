@@ -314,7 +314,7 @@
         <section class="reveal">
           <h2>What it does</h2>
           <div class="grid">
-            <div class="card"><h3>Resolve, not host</h3><p>AniFuse hosts no video. It resolves the URLs the sites already serve publicly — and for gotaku, whose CDN encrypts playlists and segments, it unwraps them in real time through the built-in transform proxy.</p></div>
+            <div class="card"><h3>Resolve, not host</h3><p>AniFuse hosts no video. It resolves the URLs the sites already serve publicly — and it still carries gotaku's playlist/segment unwrap for residential self-hosters (the provider itself is disabled because its CDN blocks datacenter IPs).</p></div>
             <div class="card"><h3>Every stream, ranked</h3><p>Ask without a provider and every healthy site is tried in parallel — all their streams come back deduplicated and ranked highest quality first.</p></div>
             <div class="card"><h3>Sub and dub aware</h3><p>Requests carry the language. Multi-audio masters serve both from one URL; dub-only rows are never played for a sub request.</p></div>
             <div class="card"><h3>Typed failures</h3><p><code>404</code> means “not here”, <code>502</code> means “site unreachable or challenged” — clients can tell the difference.</p></div>
@@ -473,7 +473,7 @@ curl -sS "http://localhost:8080/v1/latest?search=frieren&amp;sort=ep"</pre>
             <div class="card"><h3>Collecting fan-out</h3><p>Unpinned resolves ask every healthy provider; streams merge into one list ranked highest quality first.</p></div>
             <div class="card"><h3>Health memory</h3><p>Blocked sites cool off for a minute instead of slowing every race.</p></div>
             <div class="card"><h3>Cache + singleflight</h3><p>Identical requests share one upstream fetch; repeats replay from cache.</p></div>
-            <div class="card"><h3>Transform proxy</h3><p>Gotaku's encrypted playlists and XOR'd segments are unwrapped server-side on <code>/v1/gotaku/play</code> and <code>/v1/gotaku/seg</code> — any HLS player can play them.</p></div>
+            <div class="card"><h3>Transform proxy</h3><p>Gotaku's encrypted playlists and XOR'd segments unwrap on <code>/v1/gotaku/play</code> and <code>/v1/gotaku/seg</code> — kept for residential self-hosters; the provider is disabled by default (its CDN refuses datacenter IPs).</p></div>
           </div>
         </section>
         <div class="warn">The same disclaimer applies: AniFuse hosts nothing and controls nothing on the sites it queries. You are responsible for the laws where you are and for the terms of every site it resolves. Use at your own risk.</div>

@@ -165,13 +165,17 @@ their ids.
 ## Gotaku transform proxy
 
 Gotaku encrypts its HLS playlists (AES-GCM) and XOR-obfuscates the first
-bytes of every segment, so its plain URLs are not playable. AniFuse moves
-the unwrap server-side: gotaku sources resolve to `…/v1/gotaku/play` URLs
-which serve decrypted playlists with every URI rewritten through the proxy,
-and `…/v1/gotaku/seg` streams segments with the XOR removed, honoring
-`Range` requests. Both endpoints accept only `https` URLs on gotaku's own
-`/p/1` and `/s/1` CDN paths pointing at public hosts, so they cannot act as
-a general proxy. Nothing is stored — the bytes flow through in real time.
+bytes of every segment, so its plain URLs are not playable. AniFuse carries
+the full unwrap — `…/v1/gotaku/play` serves decrypted playlists with every
+URI rewritten through the proxy, and `…/v1/gotaku/seg` streams segments
+with the XOR removed, honoring `Range` requests. Both endpoints accept only
+`https` URLs on gotaku's own `/p/1` and `/s/1` CDN paths pointing at public
+hosts, so they cannot act as a general proxy. Nothing is stored — the bytes
+flow through in real time.
+
+**The gotaku provider is disabled by default**: its CDN refuses datacenter
+IPs, so the hosted API cannot play it. The endpoints and crypto stay for
+self-hosters on residential connections.
 
 ## Caching and transport
 

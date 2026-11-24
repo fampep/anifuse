@@ -3,7 +3,7 @@
   "id": "site.anikitty.anifuse",
   "name": "AniFuse",
   "version": "1.1.0",
-  "description": "The main AniKitty extension: one hosted API fronting 13 anime sources with parallel failover, captions and live health. Point baseUrl at your own deployment to self-host.",
+  "description": "The main AniKitty extension: one hosted API fronting 12 anime sources with parallel failover, captions and live health. Point baseUrl at your own deployment to self-host.",
   "author": "fampep",
   "homepage": "https://github.com/fampep/anifuse",
   "baseUrl": "https://143-246-203-212.sslip.io",
