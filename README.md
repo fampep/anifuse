@@ -30,7 +30,7 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `gotaku` | gotaku.to | 🔜 porting (segment unwrap stays on-device) |
 | `reanime` | reanime.cz | 🔜 porting |
 | `mkissa` | mkissa.to | 🔜 porting |
-| `kaa` | kaa.lt | 🔜 porting |
+| `kaa` | kaa.lt | ✅ shipped |
 | `animex` | animex.one | 🔜 porting |
 | `xanime` | xanime.app | 🔜 porting |
 | `aninz` | ani.nz | 🔜 porting |

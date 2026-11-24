@@ -13,6 +13,7 @@ import (
 	"github.com/fampep/anifuse/internal/providers/anigato"
 	"github.com/fampep/anifuse/internal/providers/anihosts"
 	"github.com/fampep/anifuse/internal/providers/animegg"
+	"github.com/fampep/anifuse/internal/providers/kaa"
 	"github.com/fampep/anifuse/internal/resolve"
 )
 
@@ -28,6 +29,7 @@ func NewRegistry() *Registry {
 			anihosts.New(),
 			anigato.New(),
 			animegg.New(),
+			kaa.New(),
 		},
 	}
 }

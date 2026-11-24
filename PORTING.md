@@ -11,11 +11,11 @@ parser tests that mirror its Kotlin test.
 | `anihosts` | `providers/anihosts/AniHostsServer.kt` | ✅ shipped | packed jwplayer unwrap + multi-audio master |
 | `anigato` | `providers/anigato/AnigatoServer.kt` | ✅ | `/api/episodes/{id}`, `/api/watch/{id}/sub|dub/{ep}` |
 | `animegg` | `providers/animegg/AnimeggServer.kt` | ✅ | search → series → episode → embed → `/play/` file |
-| `anikoto` | `providers/anikoto/AnikotoServer.kt` | 🔜 | embed + MegaPlay crypto + kotoplay.to fallback |
-| `gotaku` | `providers/gotaku/GotakuServer.kt` | 🔜 | master is fine to resolve, but the segment unwrap (`gotakuObf`) is a player-side transform and cannot travel over this protocol — document and skip |
-| `reanime` | `providers/reanime/ReanimeServer.kt` | 🔜 | |
-| `mkissa` | `providers/mkissa/MkissaServer.kt` | 🔜 | skip iframe hosts, direct file only |
-| `kaa` | `providers/kaa/KaaServer.kt` | 🔜 | |
+| `anikoto` | `providers/anikoto/AnikotoServer.kt` | ✅ on-device only | Flix/MegaPlay crypto + kotoplay fallback |
+| `gotaku` | `providers/gotaku/GotakuServer.kt` | ✅ on-device only | segment unwrap is a player-side transform; the hosted API cannot express it |
+| `reanime` | `providers/reanime/ReanimeServer.kt` | ✅ on-device only | Flix WASM crypto; playlist and segments are unwrapped on the phone |
+| `mkissa` | `providers/mkissa/MkissaServer.kt` | ✅ on-device only | aa-crypto lane cannot travel over the HTTP protocol |
+| `kaa` | `providers/kaa/KaaServer.kt` | ✅ | vidstream master on hls.krussdomi.com |
 | `animex` | `providers/animex/AnimexServer.kt` | 🔜 | |
 | `xanime` | `providers/xanime/XanimeServer.kt` | 🔜 | |
 | `aninz` | `providers/aninz/AniNzServer.kt` | 🔜 | |

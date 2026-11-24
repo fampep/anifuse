@@ -64,6 +64,30 @@ func (c *Client) GetText(ctx context.Context, url, referer string) (Page, error)
 	return Page{Code: resp.StatusCode, Body: string(body)}, nil
 }
 
+// PostJSON POSTs a JSON body with the browser User-Agent and extra headers.
+func (c *Client) PostJSON(ctx context.Context, url, body string, headers map[string]string) (Page, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(body))
+	if err != nil {
+		return Page{}, err
+	}
+	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	for name, value := range headers {
+		req.Header.Set(name, value)
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return Page{}, err
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+	if err != nil {
+		return Page{}, err
+	}
+	return Page{Code: resp.StatusCode, Body: string(data)}, nil
+}
+
 // Challenge reports whether a page or status looks like a bot wall.
 func Challenge(code int, body string) bool {
 	if code == 403 || code == 429 || code == 503 {
