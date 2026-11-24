@@ -21,7 +21,7 @@ parser tests that mirror its Kotlin test.
 | `aninz` | `providers/aninz/AniNzServer.kt` | ✅ | settlar bootstrap + session token + media.settlar.io master |
 | `gogoanime` | `providers/gogoanime/GogoAnimeServer.kt` | ✅ | MegaPlay / MegaVid HLS with title scoring |
 | `aniwaves` | `providers/aniwaves/AniwavesServer.kt` | ✅ | ajax server list + embed getSources playlist |
-| `anizone` | `providers/anizone/AnizoneServer.kt` | 🔜 | |
+| `anizone` | `providers/anizone/AnizoneServer.kt` | ✅ | embedded items search + vidstackPlayer master/captions, plus the legacy media-player/setVideo/<track> layout as fallback |
 
 ## Adding a provider
 

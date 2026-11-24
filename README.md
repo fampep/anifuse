@@ -35,9 +35,8 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `xanime` | xanime.app | ✅ shipped |
 | `aninz` | ani.nz | ✅ shipped |
 | `gogoanime` | gogoanime.by | ✅ shipped |
-| `animegg` | animegg.org | ✅ shipped |
 | `aniwaves` | aniwaves.tv | ✅ shipped |
-| `anizone` | anizone.to | 🔜 porting |
+| `anizone` | anizone.to | ✅ shipped |
 
 Porting progress and per-site notes live in [PORTING.md](PORTING.md). The reference implementations are the bundled resolvers in [fampep/anikitty-extensions](https://github.com/fampep/anikitty-extensions/tree/main/providers).
 
@@ -82,7 +81,9 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
         { "url": "https://cdn.example.com/ep1/en.vtt", "label": "English", "language": "en", "mimeType": "text/vtt" }
       ]
     }
-  ]
+  ],
+  "provider": "anihosts",
+  "tookMs": 812
 }
 ```
 
@@ -92,13 +93,16 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
 | `episode` | required, > 0 |
 | `audio` | `"sub"` (default) or `"dub"` |
 | `titleHint` | optional search helper |
-| `provider` | optional; pin one bundled provider. Omitted = failover across all. |
+| `provider` | optional; pin one bundled provider. Omitted = race every healthy provider in parallel; the fastest working stream wins. |
 
-Errors are non-2xx with `{"error":"human message"}`. An empty `sources` array is a failure. Full protocol in [docs/API.md](docs/API.md).
+The extra `provider` and `tookMs` fields name the winning site and the
+upstream resolve time; `cached: true` appears when a cached answer was
+replayed. Errors are non-2xx with `{"error":"human message"}`. An empty
+`sources` array is a failure. Full protocol in [docs/API.md](docs/API.md).
 
 ### `GET /v1/latest`
 
-The aggregated newest-episodes feed: every provider that publishes one contributes rows. Optional `?provider=` pins one site, `?limit=` caps the total (default 40, max 200).
+The aggregated newest-episodes feed: every provider that publishes one contributes rows. Optional `?provider=` pins one site, `?limit=` caps the total (default 40, max 200), `?search=` filters titles case-insensitively, `?sort=ep|name|mixed` orders the rows.
 
 ```bash
 curl -sS "http://localhost:8080/v1/latest"
@@ -134,17 +138,38 @@ the standard `HTTP_PROXY`/`HTTPS_PROXY` environment variables.
 
 ### `GET /v1/providers`
 
-Lists the bundled providers (`id`, `name`, `siteUrl`).
+Lists the bundled providers with live health: `id`, `name`, `siteUrl`,
+`status` (`ok` | `degraded` | `down`), `successRate`, `attempts`, and
+`cooldownSeconds` while a site cools off after repeated blocked failures.
 
 ### `GET /healthz`
 
-Liveness: `{"status":"ok","providers":N}`.
+Liveness: `{"status","providers","uptimeSeconds","unhealthy"}`.
+
+### `GET /metrics`
+
+Request counters and per-provider stats for dashboards.
+
+## Speed
+
+- **Parallel fan-out** — an unpinned resolve races every healthy provider at
+  once; latency is the fastest working site, not the sum of all of them.
+- **TTL cache + singleflight** — repeat resolves replay for 10 minutes,
+  the latest feed for 3, and bursts of identical requests share one
+  upstream fetch. `X-AniFuse-Cache: HIT|SHARED|MISS` tells you which.
+- **Health memory** — providers that fail blocked three times in a row
+  cool off for a minute instead of slowing every race.
+- **gzip + ETag + CORS** — responses compress when asked, revalidate with
+  `If-None-Match`, and the `/v1/*` endpoints are open to browser clients.
 
 ## Configuration
 
 | Env | Default | Notes |
 | --- | --- | --- |
 | `PORT` | `8080` | listen port |
+| `ANIFUSE_RESOLVE_TIMEOUT` | `30s` | overall deadline for one resolve race |
+| `ANIFUSE_RESOLVE_CACHE_TTL` | `10m` | how long a resolved answer is replayed |
+| `ANIFUSE_LATEST_CACHE_TTL` | `3m` | how long the latest feed is cached |
 
 ## Design
 

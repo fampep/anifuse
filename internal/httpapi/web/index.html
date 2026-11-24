@@ -14,6 +14,7 @@
     --line: rgba(255,255,255,0.08); --text: #f5f7fa;
     --muted: rgba(245,247,250,0.62); --faint: rgba(245,247,250,0.40);
     --accent: #f5a623; --accent-ink: #000000; --code: #101114;
+    --ok: #4cd964; --warn: #f5a623; --bad: #ff453a;
     --sidebar: 230px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,6 +27,7 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   code { font-family: "SF Mono", Consolas, "Cascadia Code", monospace; font-size: 0.92em; }
+  button { font: inherit; }
 
   /* ---- layout ---- */
   .layout { display: flex; min-height: 100vh; }
@@ -35,8 +37,10 @@
     padding: 22px 16px; overflow-y: auto; z-index: 20;
     transition: transform 0.25s ease;
   }
-  .sidebar .brand { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 22px; display: flex; gap: 4px; align-items: center; }
-  .sidebar .brand .dot { color: var(--accent); }
+  .brand { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 22px; display: flex; gap: 8px; align-items: center; }
+  .brand .dot { color: var(--accent); }
+  .brand .mark { width: 26px; height: 26px; flex: none; border-radius: 7px; background: linear-gradient(135deg, #2a2013, #1a1410); border: 1px solid rgba(245,166,35,0.35); display: grid; place-items: center; }
+  .brand .mark svg { width: 14px; height: 14px; }
   .sidebar nav { display: grid; gap: 4px; }
   .sidebar nav a, .sidebar .sub-title {
     display: block; padding: 9px 12px; border-radius: 10px;
@@ -46,16 +50,19 @@
   .sidebar nav a.active { background: rgba(245,166,35,0.12); color: var(--accent); font-weight: 600; }
   .sidebar .sub-title { font-size: 11.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--faint); margin-top: 14px; padding-bottom: 4px; }
   .sidebar .provider-list { display: grid; gap: 2px; }
-  .sidebar .provider-list a { font-size: 13.5px; padding: 6px 12px; }
+  .sidebar .provider-list a { font-size: 13.5px; padding: 6px 12px; display: flex; align-items: center; gap: 7px; }
+  .sidebar .provider-list .dot-mini { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex: none; }
+  .sidebar .provider-list .dot-mini.ok { background: var(--ok); }
+  .sidebar .provider-list .dot-mini.degraded { background: var(--warn); }
+  .sidebar .provider-list .dot-mini.down { background: var(--bad); }
   .content { flex: 1; margin-left: var(--sidebar); min-width: 0; }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
   .topbar {
     position: sticky; top: 0; z-index: 10; display: none;
     background: rgba(11,12,14,0.92); backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line); padding: 12px 16px; align-items: center; gap: 12px;
   }
-  .topbar .brand { font-weight: 800; }
-  .topbar .brand .dot { color: var(--accent); }
+  .topbar .brand { font-weight: 800; margin: 0; font-size: 16px; }
   .burger { margin-left: auto; background: var(--card); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 7px 12px; cursor: pointer; font-size: 14px; }
 
   /* ---- pages ---- */
@@ -68,61 +75,158 @@
   .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
   .chip { font-size: 12.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; background: var(--card); transition: border-color 0.2s ease, color 0.2s ease; }
   .chip:hover { border-color: rgba(245,166,35,0.5); color: var(--text); }
+
+  /* live stats */
+  .statbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .stat {
+    display: flex; align-items: baseline; gap: 8px;
+    border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px;
+    background: var(--card);
+  }
+  .stat .n { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .stat .n.ok { color: var(--ok); }
+  .stat .n.warn { color: var(--warn); }
+  .stat .n.bad { color: var(--bad); }
+  .stat .l { font-size: 12.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.8px; }
+
   section { padding: 26px 0; }
   section h2 { font-size: 21px; letter-spacing: -0.4px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
-  section h2::before { content: ""; width: 5px; height: 18px; border-radius: 3px; background: var(--accent); }
+  section h2::before { content: ""; width: 5px; height: 18px; border-radius: 3px; background: var(--accent); flex: none; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; transition: transform 0.18s ease, border-color 0.18s ease; }
   .card:hover { transform: translateY(-3px); border-color: rgba(245,166,35,0.35); }
   .card h3 { font-size: 15px; }
   .card p { color: var(--muted); font-size: 13.5px; margin-top: 6px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--faint); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
   td:first-child, th:first-child { padding-left: 0; }
-  .ok { color: #4cd964; }
+  .ok { color: var(--ok); }
   .soon { color: var(--faint); }
-  pre { background: var(--code); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; overflow-x: auto; font: 13px/1.55 "SF Mono", Consolas, monospace; color: #e8eaed; margin-top: 12px; }
+  pre { background: var(--code); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; overflow-x: auto; font: 13px/1.55 "SF Mono", Consolas, monospace; color: #e8eaed; margin-top: 12px; position: relative; }
   pre .c { color: #6b7280; }
+  pre .copy {
+    position: absolute; top: 10px; right: 10px; border: 1px solid var(--line); background: var(--panel);
+    color: var(--muted); font-size: 11.5px; border-radius: 8px; padding: 4px 10px; cursor: pointer;
+  }
+  pre .copy:hover { color: var(--text); border-color: rgba(245,166,35,0.4); }
   .steps { display: grid; gap: 10px; counter-reset: step; }
   .step { display: flex; gap: 12px; align-items: flex-start; transition: transform 0.18s ease; }
   .step:hover { transform: translateX(4px); }
-  .step::before { counter-increment: step; content: counter(step); min-width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+  .step::before { counter-increment: step; content: counter(step); min-width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; margin-top: 2px; }
   .step p { color: var(--muted); }
-  footer { border-top: 1px solid var(--line); margin-top: 36px; padding: 24px 0 40px; color: var(--faint); font-size: 13px; }
+  footer { border-top: 1px solid var(--line); margin-top: 36px; padding: 24px 0 40px; color: var(--faint); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; }
+  footer .spacer { flex: 1; }
   .warn { border: 1px solid rgba(245,166,35,0.35); background: rgba(245,166,35,0.06); border-radius: 16px; padding: 16px; font-size: 13.5px; color: var(--muted); margin-top: 26px; }
 
-  /* ---- latest feed toolbar ---- */
-  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  /* ---- badges ---- */
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; color: var(--muted); }
+  .badge .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+  .badge.ok .pulse { background: var(--ok); }
+  .badge.degraded { color: var(--warn); border-color: rgba(245,166,35,0.4); }
+  .badge.degraded .pulse { background: var(--warn); }
+  .badge.down { color: var(--bad); border-color: rgba(255,69,58,0.4); }
+  .badge.down .pulse { background: var(--bad); }
+  .badge.cache { color: var(--accent); border-color: rgba(245,166,35,0.35); }
+  .badge.dub { color: #7dd8ff; }
+
+  /* ---- latest feed ---- */
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
   .toolbar select, .toolbar input {
     background: var(--panel); color: var(--text); border: 1px solid var(--line);
     border-radius: 999px; padding: 9px 14px; font-size: 14px; outline: none;
   }
   .toolbar input { flex: 1; min-width: 180px; }
   .toolbar select:hover, .toolbar input:focus { border-color: rgba(245,166,35,0.5); }
-  .feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .toolbar .btn { background: var(--card); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 9px 14px; font-size: 14px; cursor: pointer; }
+  .toolbar .btn:hover { color: var(--text); border-color: rgba(245,166,35,0.4); }
+  .feed-meta { font-size: 12.5px; color: var(--faint); margin: -8px 0 12px; }
+  .feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
   .feed .row { display: flex; gap: 10px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px; transition: transform 0.18s ease, border-color 0.18s ease; animation: fadeUp 0.45s ease both; }
   .feed .row:hover { transform: translateY(-2px); border-color: rgba(245,166,35,0.3); }
   .feed .row img { width: 88px; height: 50px; object-fit: cover; border-radius: 9px; background: #15161b; flex: none; transition: transform 0.25s ease; }
   .feed .row:hover img { transform: scale(1.05); }
   .feed .row .info { min-width: 0; }
   .feed .row .t { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .feed .row .m { font-size: 11.5px; color: var(--muted); margin-top: 3px; display: flex; gap: 7px; align-items: center; }
+  .feed .row .m { font-size: 11.5px; color: var(--muted); margin-top: 3px; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
   .feed .row .ep { color: var(--accent); font-weight: 700; }
-  .feed .row .prov { font-size: 10.5px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; }
+  .feed .row .prov { font-size: 10.5px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; color: var(--muted); }
   .feed .row a { color: var(--text); }
   .feed .row a:hover { text-decoration: none; }
+  .feed .row .when { color: var(--faint); }
   .feed-empty { color: var(--faint); font-size: 13.5px; }
+  .skel {
+    background: linear-gradient(100deg, rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 60%);
+    background-size: 200% 100%; animation: shimmer 1.4s infinite linear; border-radius: 14px;
+    height: 70px; border: 1px solid var(--line);
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
 
-  /* ---- provider page cards ---- */
-  .prov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-  .prov-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  /* ---- provider cards ---- */
+  .prov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .prov-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; transition: transform 0.18s ease, border-color 0.18s ease; }
+  .prov-card:hover { transform: translateY(-3px); border-color: rgba(245,166,35,0.35); }
   .prov-card .head { display: flex; align-items: center; gap: 10px; }
   .prov-card .head b { font-size: 15px; }
-  .prov-card .status { margin-left: auto; font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
-  .prov-card .status.ok { border-color: rgba(76,217,100,0.4); }
+  .prov-card .head .badge { margin-left: auto; }
   .prov-card p { color: var(--muted); font-size: 13px; margin-top: 8px; }
-  .prov-card a.site { font-size: 12.5px; }
+  .prov-card a.site { font-size: 12.5px; word-break: break-all; }
+  .rate-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .rate-bar { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .rate-fill { height: 100%; border-radius: 3px; background: var(--ok); transition: width 0.5s ease; }
+  .rate-fill.degraded { background: var(--warn); }
+  .rate-fill.down { background: var(--bad); }
+  .rate-label { font-size: 11px; color: var(--faint); white-space: nowrap; }
+
+  /* ---- playground ---- */
+  .pg-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+  .field { display: grid; gap: 6px; }
+  .field label { font-size: 12px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.6px; }
+  .field input, .field select {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 12px; padding: 10px 14px; font-size: 15px; outline: none; width: 100%;
+  }
+  .field input:focus, .field select:focus { border-color: rgba(245,166,35,0.55); }
+  .pg-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent); color: var(--accent-ink); border: none; border-radius: 12px;
+    padding: 11px 22px; font-weight: 700; font-size: 15px; cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(245,166,35,0.25); }
+  .btn-primary:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: none; }
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #000; border-radius: 50%; display: inline-block; animation: spin 0.7s linear infinite; vertical-align: -2px; margin-right: 7px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hist { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .hist .chip-h { font-size: 12px; color: var(--muted); border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  .hist .chip-h:hover { border-color: rgba(245,166,35,0.4); color: var(--text); }
+  .pg-result { margin-top: 22px; display: grid; gap: 12px; }
+  .res-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .src-card { border: 1px solid var(--line); border-radius: 16px; background: var(--card); overflow: hidden; }
+  .src-top { display: flex; gap: 10px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .src-top b { font-size: 15px; }
+  .src-top .spacer { flex: 1; }
+  .src-body { padding: 14px 16px; display: grid; gap: 12px; }
+  .src-url { display: flex; gap: 8px; align-items: center; }
+  .src-url code { flex: 1; word-break: break-all; color: var(--accent); font-size: 12.5px; }
+  .copy-btn { border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 8px; padding: 5px 12px; font-size: 12px; cursor: pointer; flex: none; }
+  .copy-btn:hover { color: var(--text); border-color: rgba(245,166,35,0.4); }
+  .hdr-table { font-size: 12.5px; }
+  .hdr-table td { padding: 4px 10px; }
+  .hdr-table td:first-child { color: var(--faint); white-space: nowrap; }
+  .sub-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .err-box { border: 1px solid rgba(255,69,58,0.4); background: rgba(255,69,58,0.07); border-radius: 14px; padding: 14px 16px; color: #ffb4ad; font-size: 14px; display: flex; gap: 10px; align-items: center; }
+  .err-box .code { font-weight: 800; font-size: 12px; border: 1px solid rgba(255,69,58,0.4); border-radius: 999px; padding: 1px 9px; }
+  .hint-box { border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 12px 16px; font-size: 13.5px; color: var(--muted); }
+
+  /* ---- toast ---- */
+  .toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+    background: var(--panel); border: 1px solid rgba(245,166,35,0.4); color: var(--text);
+    border-radius: 12px; padding: 10px 18px; font-size: 13.5px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease; z-index: 50; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* ---- motion ---- */
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -152,11 +256,15 @@
 <noscript><style>.page{display:block !important}.reveal{opacity:1;transform:none}</style></noscript>
 <div class="layout">
   <aside class="sidebar" id="sidebar">
-    <div class="brand">Ani<span class="dot">Fuse</span></div>
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 32 32" fill="none"><path d="M11 8.5v15l13-7.5z" fill="#f5a623"/></svg></span>
+      Ani<span class="dot">Fuse</span>
+    </div>
     <nav>
       <a href="#/overview" data-route="overview">Overview</a>
       <a href="#/latest" data-route="latest">Latest episodes</a>
       <a href="#/providers" data-route="providers">Providers</a>
+      <a href="#/playground" data-route="playground">Playground</a>
       <a href="#/api" data-route="api">API</a>
       <a href="#/about" data-route="about">About</a>
       <span class="sub-title">Sources</span>
@@ -166,7 +274,7 @@
 
   <div class="content">
     <div class="topbar">
-      <span class="brand">Ani<span class="dot">Fuse</span></span>
+      <span class="brand"><span class="mark"><svg viewBox="0 0 32 32" fill="none"><path d="M11 8.5v15l13-7.5z" fill="#f5a623"/></svg></span>Ani<span class="dot">Fuse</span></span>
       <button class="burger" id="burger" aria-label="Toggle menu">☰ Menu</button>
     </div>
 
@@ -176,19 +284,24 @@
         <div class="hero">
           <div class="glow" aria-hidden="true"></div>
           <h1>One API for <span class="amber">every anime source</span>.</h1>
-          <p>A self-hosted Go service that bundles anime site resolvers behind a single <code>POST /v1/resolve</code> endpoint. Give it an AniList id and an episode; it asks the bundled sites and answers with the direct stream URL your player can open — HLS masters, MP4 files, sidecar captions, and the headers the CDNs expect.</p>
+          <p>A self-hosted Go service that bundles anime site resolvers behind a single <code>POST /v1/resolve</code> endpoint. Give it an AniList id and an episode; it races the bundled sites and answers with the direct stream URL your player can open — HLS masters, MP4 files, sidecar captions, and the headers the CDNs expect.</p>
           <div class="chips">
             <span class="chip">Go 1.23 · zero dependencies</span>
             <span class="chip">Docker · one container</span>
             <span class="chip">AniKitty extension protocol</span>
             <span class="chip">Apache-2.0</span>
           </div>
+          <div class="statbar" id="hero-stats">
+            <div class="stat"><span class="n" id="stat-providers">…</span><span class="l">providers</span></div>
+            <div class="stat"><span class="n" id="stat-healthy">…</span><span class="l">healthy</span></div>
+            <div class="stat"><span class="n" id="stat-uptime">…</span><span class="l">uptime</span></div>
+          </div>
         </div>
         <section class="reveal">
           <h2>What it does</h2>
           <div class="grid">
             <div class="card"><h3>Resolve, not host</h3><p>AniFuse hosts no video. It resolves the URLs the sites already serve publicly and returns them to your player.</p></div>
-            <div class="card"><h3>Failover built in</h3><p>Ask without a provider and it tries every bundled site in order until one has the episode.</p></div>
+            <div class="card"><h3>Failover is a race</h3><p>Ask without a provider and every healthy site is tried in parallel — the fastest working stream wins.</p></div>
             <div class="card"><h3>Sub and dub aware</h3><p>Requests carry the language. Multi-audio masters serve both from one URL; dub-only rows are never played for a sub request.</p></div>
             <div class="card"><h3>Typed failures</h3><p><code>404</code> means “not here”, <code>502</code> means “site unreachable or challenged” — clients can tell the difference.</p></div>
           </div>
@@ -202,7 +315,7 @@
             <div class="step"><p><b>Install into AniKitty</b> — add an extension with this host's base URL and AniFuse appears as a Source in the player.</p></div>
           </div>
         </section>
-        <footer>AniFuse · Apache-2.0 · <a href="https://github.com/fampep/anifuse">github.com/fampep/anifuse</a></footer>
+        <footer><span>AniFuse · Apache-2.0</span><span class="spacer"></span><a href="https://github.com/fampep/anifuse">github.com/fampep/anifuse</a></footer>
       </div>
     </main>
 
@@ -223,9 +336,11 @@
             <option value="name">Title A–Z</option>
           </select>
           <input id="filter-search" type="search" placeholder="Search titles…" aria-label="Search titles">
+          <button class="btn" id="feed-refresh" title="Reload">↻</button>
         </div>
-        <div id="latest-feed" class="feed"><p class="feed-empty">Loading the feed…</p></div>
-        <footer>AniFuse · <a href="#/providers">Providers</a> · <a href="#/api">API</a></footer>
+        <p class="feed-meta" id="feed-meta"></p>
+        <div id="latest-feed" class="feed"></div>
+        <footer><span>AniFuse</span><span class="spacer"></span><a href="#/providers">Providers</a> · <a href="#/api">API</a></footer>
       </div>
     </main>
 
@@ -234,10 +349,39 @@
       <div class="wrap">
         <div class="hero" style="padding-bottom:18px">
           <h1>Bundled <span class="amber">providers</span></h1>
-          <p>Each provider is one Go package behind the same resolve contract. Pick one in the sidebar to pin it.</p>
+          <p>Each provider is one Go package behind the same resolve contract. Live health comes from <code>GET /v1/providers</code>.</p>
         </div>
         <div id="providers-grid" class="prov-grid"><p class="feed-empty">Loading providers…</p></div>
-        <footer>AniFuse · <a href="#/latest">Latest episodes</a> · <a href="#/api">API</a></footer>
+        <footer><span>AniFuse</span><span class="spacer"></span><a href="#/latest">Latest episodes</a> · <a href="#/playground">Playground</a></footer>
+      </div>
+    </main>
+
+    <!-- ================= PLAYGROUND ================= -->
+    <main class="page" id="page-playground">
+      <div class="wrap">
+        <div class="hero" style="padding-bottom:18px">
+          <h1>The <span class="amber">playground</span></h1>
+          <p>Fire a real <code>POST /v1/resolve</code> from this page and watch the race. Providers without a pinned choice race in parallel — the fastest working stream wins.</p>
+        </div>
+        <section>
+          <div class="pg-form" id="pg-form">
+            <div class="field"><label for="pg-anilist">AniList id</label><input id="pg-anilist" type="number" min="1" placeholder="16498"></div>
+            <div class="field"><label for="pg-episode">Episode</label><input id="pg-episode" type="number" min="1" placeholder="1"></div>
+            <div class="field"><label for="pg-audio">Audio</label><select id="pg-audio"><option value="sub">Sub (Japanese)</option><option value="dub">Dub (English)</option></select></div>
+            <div class="field"><label for="pg-provider">Provider</label><select id="pg-provider"><option value="">Auto — race all</option></select></div>
+            <div class="field"><label for="pg-title">Title hint</label><input id="pg-title" type="text" placeholder="Attack on Titan (optional)"></div>
+          </div>
+          <div class="pg-actions">
+            <button class="btn-primary" id="pg-go">Resolve</button>
+            <span id="pg-status" style="font-size:13.5px;color:var(--faint)"></span>
+          </div>
+          <div class="hist" id="pg-history"></div>
+        </section>
+        <section>
+          <div id="pg-result" class="pg-result"></div>
+        </section>
+        <div class="warn">The playground calls the same endpoints any client would. Nothing is cached in your browser except the five most recent attempts in the history chips.</div>
+        <footer><span>AniFuse</span><span class="spacer"></span><a href="#/api">API docs</a></footer>
       </div>
     </main>
 
@@ -246,7 +390,7 @@
       <div class="wrap">
         <div class="hero" style="padding-bottom:18px">
           <h1>The <span class="amber">API</span></h1>
-          <p>Three endpoints, one protocol — the same JSON AniKitty speaks, so a running instance is a first-class source.</p>
+          <p>Five endpoints, one protocol — the same JSON AniKitty speaks, so a running instance is a first-class source. Responses are gzip-compressed, CORS-open, and cached with ETags.</p>
         </div>
         <section class="reveal">
           <h2>POST /v1/resolve</h2>
@@ -259,8 +403,8 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
             <tr><td><code>anilistId</code></td><td>required, &gt; 0</td></tr>
             <tr><td><code>episode</code></td><td>required, &gt; 0</td></tr>
             <tr><td><code>audio</code></td><td><code>"sub"</code> (default) or <code>"dub"</code></td></tr>
-            <tr><td><code>titleHint</code></td><td>optional search helper</td></tr>
-            <tr><td><code>provider</code></td><td>optional; pin one provider. Omitted = failover across all.</td></tr>
+            <tr><td><code>titleHint</code></td><td>optional search helper (needed by anizone)</td></tr>
+            <tr><td><code>provider</code></td><td>optional; pin one provider. Omitted = race all healthy providers.</td></tr>
           </table>
           <pre><span class="c">// 200 — success</span>
 {
@@ -271,23 +415,28 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
     "subtitles": [
       { "url": "https://cdn.example.com/ep1/en.vtt", "label": "English", "language": "en", "mimeType": "text/vtt" }
     ]
-  }]
+  }],
+  "provider": "anihosts",
+  "tookMs": 812
 }
 
 <span class="c">// non-2xx — failure</span>
 { "error": "AniHosts does not have this episode." }</pre>
+          <p style="color:var(--muted);font-size:14px"><code>provider</code> names the winning site, <code>tookMs</code> the upstream resolve time, <code>cached</code> appears when a cached answer was replayed. Repeat answers come with <code>X-AniFuse-Cache: HIT</code> and <code>Cache-Control</code>.</p>
         </section>
         <section class="reveal">
           <h2>GET /v1/latest</h2>
-          <p style="color:var(--muted);font-size:14px">The aggregated newest-episodes feed. Optional <code>?provider=</code> pins one site, <code>?limit=</code> caps the total (default 40, max 200).</p>
+          <p style="color:var(--muted);font-size:14px">The aggregated newest-episodes feed. <code>?provider=</code> pins one site, <code>?limit=</code> caps the total (default 40, max 200), <code>?search=</code> filters titles case-insensitively, <code>?sort=ep|name|mixed</code> orders the rows. Cached for 3 minutes with an ETag for 304 revalidation.</p>
+          <pre><span class="c"># the newest episode named "frieren" across providers</span>
+curl -sS "http://localhost:8080/v1/latest?search=frieren&amp;sort=ep"</pre>
         </section>
         <section class="reveal">
           <h2>GET /v1/providers</h2>
-          <p style="color:var(--muted);font-size:14px">Lists the bundled providers: <code>id</code>, <code>name</code>, <code>siteUrl</code>.</p>
+          <p style="color:var(--muted);font-size:14px">Lists the bundled providers with live health: <code>id</code>, <code>name</code>, <code>siteUrl</code>, <code>status</code> (<code>ok</code> | <code>degraded</code> | <code>down</code>), <code>successRate</code>, <code>attempts</code> and <code>cooldownSeconds</code> while a site is cooling off.</p>
         </section>
         <section class="reveal">
-          <h2>GET /healthz</h2>
-          <p style="color:var(--muted);font-size:14px">Liveness: <code>{"status":"ok","providers":N}</code>.</p>
+          <h2>GET /healthz · GET /metrics</h2>
+          <p style="color:var(--muted);font-size:14px"><code>/healthz</code> answers <code>{"status","providers","uptimeSeconds","unhealthy"}</code>. <code>/metrics</code> reports request counters and per-provider stats for dashboards.</p>
         </section>
         <div class="warn">AniFuse is not affiliated with AniList, any studio, or any of the resolved sites. It hosts no video and does not control the sites it queries. You are responsible for the laws where you are and for the terms of every site it resolves. Use at your own risk.</div>
         <footer>Full protocol: <a href="https://github.com/fampep/anifuse/blob/main/docs/API.md">docs/API.md</a></footer>
@@ -307,33 +456,56 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
             <div class="card"><h3>Registry pattern</h3><p>A provider is a <code>Resolve(ctx, Request)</code>; adding a site is one package plus one line.</p></div>
             <div class="card"><h3>Typed failures</h3><p><code>missing</code> → 404, <code>blocked</code> / <code>unplayable</code> → 502.</p></div>
             <div class="card"><h3>Bounded everything</h3><p>Per-request timeouts, response caps, redirect caps, container-safe defaults.</p></div>
-            <div class="card"><h3>Parallel feeds</h3><p>The latest-episodes index fetches every provider concurrently.</p></div>
+            <div class="card"><h3>Racing fan-out</h3><p>Unpinned resolves race every healthy provider; the fastest stream wins.</p></div>
+            <div class="card"><h3>Health memory</h3><p>Blocked sites cool off for a minute instead of slowing every race.</p></div>
+            <div class="card"><h3>Cache + singleflight</h3><p>Identical requests share one upstream fetch; repeats replay from cache.</p></div>
           </div>
         </section>
         <div class="warn">The same disclaimer applies: AniFuse hosts nothing and controls nothing on the sites it queries. You are responsible for the laws where you are and for the terms of every site it resolves. Use at your own risk.</div>
-        <footer>AniFuse · Apache-2.0 · <a href="https://github.com/fampep/anifuse">github.com/fampep/anifuse</a></footer>
+        <footer><span>AniFuse · Apache-2.0</span><span class="spacer"></span><a href="https://github.com/fampep/anifuse">github.com/fampep/anifuse</a></footer>
       </div>
     </main>
   </div>
 </div>
+
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 (() => {
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   }[c]));
+  const $ = (id) => document.getElementById(id);
+
+  let toastTimer;
+  const toast = (msg) => {
+    const el = $("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+  };
+  const copyText = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); ta.remove();
+    }
+    toast(label || "Copied");
+  };
 
   /* ---- router ---- */
-  const pages = ["overview", "latest", "providers", "api", "about"];
+  const pages = ["overview", "latest", "providers", "playground", "api", "about"];
   const show = (name) => {
     for (const page of pages) {
-      const el = document.getElementById("page-" + page);
-      el.classList.toggle("visible", page === name);
+      $("page-" + page).classList.toggle("visible", page === name);
     }
     document.querySelectorAll(".sidebar nav a[data-route]").forEach((link) => {
       link.classList.toggle("active", link.dataset.route === name);
     });
-    document.getElementById("sidebar").classList.remove("open");
+    $("sidebar").classList.remove("open");
     window.scrollTo({ top: 0 });
   };
   const route = () => {
@@ -344,8 +516,8 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
     if (name === "providers") loadProviders();
   };
   window.addEventListener("hashchange", route);
-  document.getElementById("burger").addEventListener("click", () => {
-    document.getElementById("sidebar").classList.toggle("open");
+  $("burger").addEventListener("click", () => {
+    $("sidebar").classList.toggle("open");
   });
 
   /* ---- reveal on scroll ---- */
@@ -363,81 +535,283 @@ curl -sS -X POST http://localhost:8080/v1/resolve \
     });
   };
 
-  /* ---- providers ---- */
+  /* ---- shared provider data ---- */
   let providers = [];
+  const providerStatus = (id) => {
+    const p = providers.find((x) => x.id === id);
+    return p ? p.status : "ok";
+  };
+  const statusBadge = (status) =>
+    `<span class="badge ${esc(status || "ok")}"><span class="pulse"></span>${esc(status || "ok")}</span>`;
+
   const loadProviders = () => {
     fetch("/v1/providers")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
       .then((data) => {
         providers = data.providers || [];
-        const grid = document.getElementById("providers-grid");
-        if (!providers.length) {
-          grid.innerHTML = '<p class="feed-empty">No providers bundled yet.</p>';
-          return;
-        }
-        grid.innerHTML = providers.map((p) => `
-          <div class="prov-card">
-            <div class="head"><b>${esc(p.name)}</b><span class="status ok">bundled</span></div>
-            <p>Resolves <code>${esc(p.id)}</code> episodes to direct streams.</p>
-            <a class="site" href="${esc(p.siteUrl)}" target="_blank" rel="noopener noreferrer">${esc(p.siteUrl)}</a>
-          </div>`).join("");
-        const list = document.getElementById("sidebar-providers");
-        list.innerHTML = providers.map((p) =>
-          `<a href="#/providers" data-provider="${esc(p.id)}">${esc(p.name)}</a>`).join("");
-        const picker = document.getElementById("filter-provider");
-        picker.innerHTML = '<option value="">All providers</option>' +
-          providers.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
+        renderProviderGrid();
+        renderSidebarProviders();
+        renderProviderPickers();
       })
       .catch(() => {
-        document.getElementById("providers-grid").innerHTML = '<p class="feed-empty">Providers could not be loaded.</p>';
+        $("providers-grid").innerHTML = '<p class="feed-empty">Providers could not be loaded.</p>';
+      });
+  };
+
+  const renderSidebarProviders = () => {
+    const list = $("sidebar-providers");
+    list.innerHTML = providers.map((p) =>
+      `<a href="#/providers" data-provider="${esc(p.id)}"><span class="dot-mini ${esc(p.status || "ok")}"></span>${esc(p.name)}</a>`).join("");
+  };
+
+  const renderProviderPickers = () => {
+    const options = '<option value="">All providers</option>' +
+      providers.map((p) => {
+        const mark = p.status === "down" ? " · down" : p.status === "degraded" ? " · degraded" : "";
+        return `<option value="${esc(p.id)}">${esc(p.name)}${mark}</option>`;
+      }).join("");
+    $("filter-provider").innerHTML = options;
+    const pg = $("pg-provider");
+    pg.innerHTML = '<option value="">Auto — race all</option>' + providers.map((p) =>
+      `<option value="${esc(p.id)}">${esc(p.name)}${p.status === "down" ? " (down)" : p.status === "degraded" ? " (degraded)" : ""}</option>`).join("");
+  };
+
+  const renderProviderGrid = () => {
+    const grid = $("providers-grid");
+    if (!providers.length) {
+      grid.innerHTML = '<p class="feed-empty">No providers bundled yet.</p>';
+      return;
+    }
+    grid.innerHTML = providers.map((p) => {
+      const rate = p.attempts > 0 ? Math.round((p.successRate || 0) * 100) : null;
+      const fill = p.status === "down" ? "down" : p.status === "degraded" ? "degraded" : "ok";
+      const rateRow = rate === null ? "" : `
+        <div class="rate-row">
+          <span class="rate-bar"><span class="rate-fill ${fill}" style="width:${rate}%"></span></span>
+          <span class="rate-label">${rate}% reachable · ${esc(String(p.attempts))} tries</span>
+        </div>`;
+      const cooldown = p.cooldownSeconds > 0
+        ? `<p style="color:var(--bad)">cooling off for ${esc(String(p.cooldownSeconds))}s</p>` : "";
+      return `
+        <div class="prov-card">
+          <div class="head"><b>${esc(p.name)}</b>${statusBadge(p.status)}</div>
+          <p>Resolves <code>${esc(p.id)}</code> episodes to direct streams.</p>
+          ${rateRow}${cooldown}
+          <a class="site" href="${esc(p.siteUrl)}" target="_blank" rel="noopener noreferrer">${esc(p.siteUrl)}</a>
+        </div>`;
+    }).join("");
+  };
+
+  /* ---- hero stats ---- */
+  const fmtUptime = (seconds) => {
+    const s = Math.max(0, seconds || 0);
+    if (s < 60) return s + "s";
+    if (s < 3600) return Math.floor(s / 60) + "m";
+    if (s < 86400) return Math.floor(s / 3600) + "h " + Math.floor((s % 3600) / 60) + "m";
+    return Math.floor(s / 86400) + "d " + Math.floor((s % 86400) / 3600) + "h";
+  };
+  const loadStats = () => {
+    fetch("/healthz")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+      .then((h) => {
+        $("stat-uptime").textContent = fmtUptime(h.uptimeSeconds);
+        $("stat-uptime").className = "n";
+        $("stat-providers").textContent = h.providers;
+        const healthy = h.providers - (h.unhealthy || []).length;
+        const el = $("stat-healthy");
+        el.textContent = healthy;
+        el.className = "n" + (healthy === h.providers ? " ok" : healthy > 0 ? " warn" : " bad");
+      })
+      .catch(() => {
+        $("stat-providers").textContent = "–";
+        $("stat-healthy").textContent = "–";
+        $("stat-uptime").textContent = "–";
       });
   };
 
   /* ---- latest feed ---- */
-  let latestRows = [];
-  const renderFeed = () => {
-    const feed = document.getElementById("latest-feed");
-    const provider = document.getElementById("filter-provider").value;
-    const order = document.getElementById("sort-order").value;
-    const search = document.getElementById("filter-search").value.trim().toLowerCase();
-    let rows = latestRows;
-    if (provider) rows = rows.filter((r) => r.provider === provider);
-    if (search) rows = rows.filter((r) => (r.title || "").toLowerCase().includes(search));
-    if (order === "ep") rows = rows.slice().sort((a, b) => (b.episode || 0) - (a.episode || 0));
-    if (order === "name") rows = rows.slice().sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+  let feedSeq = 0;
+  const skeleton = (n) => Array.from({ length: n }, () => '<div class="skel"></div>').join("");
+  const renderFeed = (rows, seq) => {
+    if (seq !== feedSeq) return; // a newer fetch superseded this one
+    const feed = $("latest-feed");
     if (!rows.length) {
       feed.innerHTML = '<p class="feed-empty">No episodes match.</p>';
       return;
     }
     feed.innerHTML = rows.map((e, i) => {
       const img = e.imageUrl
-        ? `<img src="${esc(e.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+        ? `<img src="${esc(e.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.opacity=0">`
         : `<img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" style="opacity:0">`;
-      const ep = e.episode ? `<span class="ep">EP ${e.episode}</span>` : "";
+      const ep = e.episode ? `<span class="ep">EP ${esc(String(e.episode))}</span>` : "";
       const prov = `<span class="prov">${esc(e.provider)}</span>`;
+      const when = e.updatedAt ? `<span class="when">${esc(e.updatedAt)}</span>` : "";
       const link = e.siteUrl
         ? `<a href="${esc(e.siteUrl)}" target="_blank" rel="noopener noreferrer"><span class="t">${esc(e.title)}</span></a>`
         : `<span class="t">${esc(e.title)}</span>`;
-      return `<div class="row" style="animation-delay:${Math.min(i * 35, 400)}ms">${img}<div class="info">${link}<div class="m">${ep}${prov}</div></div></div>`;
+      return `<div class="row" style="animation-delay:${Math.min(i * 35, 400)}ms">${img}<div class="info">${link}<div class="m">${ep}${prov}${when}</div></div></div>`;
     }).join("");
   };
   const loadFeed = () => {
-    fetch("/v1/latest")
+    const seq = ++feedSeq;
+    const provider = $("filter-provider").value;
+    const order = $("sort-order").value;
+    const search = $("filter-search").value.trim();
+    const feed = $("latest-feed");
+    feed.innerHTML = skeleton(12);
+    const params = new URLSearchParams({ limit: "60", sort: order });
+    if (provider) params.set("provider", provider);
+    if (search) params.set("search", search);
+    const start = performance.now();
+    fetch("/v1/latest?" + params.toString())
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
       .then((data) => {
-        latestRows = data.latest || [];
-        renderFeed();
+        const rows = data.latest || [];
+        $("feed-meta").textContent =
+          rows.length + (rows.length === 1 ? " episode" : " episodes") +
+          " · fetched in " + Math.round(performance.now() - start) + "ms" +
+          " · cached server-side for 3 minutes";
+        renderFeed(rows, seq);
       })
       .catch(() => {
-        document.getElementById("latest-feed").innerHTML = '<p class="feed-empty">The feed could not be loaded.</p>';
+        if (seq !== feedSeq) return;
+        feed.innerHTML = '<p class="feed-empty">The feed could not be loaded.</p>';
       });
   };
-  document.getElementById("filter-provider").addEventListener("change", renderFeed);
-  document.getElementById("sort-order").addEventListener("change", renderFeed);
-  document.getElementById("filter-search").addEventListener("input", renderFeed);
+  let searchTimer;
+  $("filter-provider").addEventListener("change", loadFeed);
+  $("sort-order").addEventListener("change", loadFeed);
+  $("filter-search").addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadFeed, 250);
+  });
+  $("feed-refresh").addEventListener("click", loadFeed);
+
+  /* ---- playground ---- */
+  const HISTORY_KEY = "anifuse:playground";
+  const readHistory = () => {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; }
+  };
+  const renderHistory = () => {
+    const hist = readHistory();
+    $("pg-history").innerHTML = hist.map((h) => {
+      const label = `${h.anilistId} · EP ${h.episode} · ${h.audio}${h.provider ? " · " + h.provider : ""}`;
+      return `<button class="chip-h" data-json='${esc(JSON.stringify(h))}'>${esc(label)}</button>`;
+    }).join("");
+  };
+  const pushHistory = (entry) => {
+    const hist = readHistory().filter((h) => JSON.stringify(h) !== JSON.stringify(entry));
+    hist.unshift(entry);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist.slice(0, 5)));
+    renderHistory();
+  };
+  $("pg-history").addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".chip-h");
+    if (!btn) return;
+    const h = JSON.parse(btn.dataset.json);
+    $("pg-anilist").value = h.anilistId;
+    $("pg-episode").value = h.episode;
+    $("pg-audio").value = h.audio;
+    $("pg-provider").value = h.provider || "";
+    $("pg-title").value = h.titleHint || "";
+  });
+
+  const resolve = async () => {
+    const anilistId = parseInt($("pg-anilist").value, 10);
+    const episode = parseInt($("pg-episode").value, 10);
+    if (!anilistId || !episode) {
+      toast("AniList id and episode are required");
+      return;
+    }
+    const audio = $("pg-audio").value;
+    const provider = $("pg-provider").value;
+    const titleHint = $("pg-title").value.trim();
+    const go = $("pg-go");
+    go.disabled = true;
+    go.innerHTML = '<span class="spinner"></span>Racing providers…';
+    $("pg-status").textContent = "";
+    $("pg-result").innerHTML = skeleton(2);
+    const start = performance.now();
+    try {
+      const resp = await fetch("/v1/resolve", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ anilistId, episode, audio, titleHint, provider: provider || undefined }),
+      });
+      const body = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        $("pg-result").innerHTML = `
+          <div class="err-box"><span class="code">${resp.status}</span><span>${esc(body.error || "resolve failed")}</span></div>`;
+        return;
+      }
+      pushHistory({ anilistId, episode, audio, provider, titleHint });
+      renderPlaygroundResult(body, Math.round(performance.now() - start));
+    } catch (err) {
+      $("pg-result").innerHTML = `
+        <div class="err-box"><span class="code">net</span><span>${esc(String(err))}</span></div>`;
+    } finally {
+      go.disabled = false;
+      go.textContent = "Resolve";
+    }
+  };
+  $("pg-go").addEventListener("click", resolve);
+  $("pg-form").addEventListener("keydown", (ev) => { if (ev.key === "Enter") resolve(); });
+
+  const renderPlaygroundResult = (body, wallMs) => {
+    const sources = body.sources || [];
+    const badges = [];
+    if (body.provider) badges.push(`<span class="badge"><span class="pulse" style="background:var(--accent)"></span>won by ${esc(body.provider)}</span>`);
+    badges.push(`<span class="badge">${esc(String(body.tookMs ?? wallMs))}ms upstream</span>`);
+    if (body.cached) badges.push('<span class="badge cache">cached</span>');
+    const head = `<div class="res-head">${badges.join("")}</div>`;
+    if (!sources.length) {
+      $("pg-result").innerHTML = head + '<div class="err-box"><span class="code">0</span><span>No sources came back — an empty sources array is a failure.</span></div>';
+      return;
+    }
+    const cards = sources.map((src) => {
+      const meta = [src.quality, src.audio, src.qualityRating].filter(Boolean).map((m) =>
+        `<span class="badge">${esc(m)}</span>`).join("");
+      const headers = Object.entries(src.headers || {}).map(([k, v]) =>
+        `<tr><td>${esc(k)}</td><td><code>${esc(v)}</code></td></tr>`).join("");
+      const subs = (src.subtitles || []).map((s) =>
+        `<span class="sub-row"><span class="badge">${esc(s.label)}</span><code style="color:var(--muted)">${esc(s.mimeType || "")}</code><span class="copy-btn" data-copy="${esc(s.url)}">copy</span></span>`).join("");
+      return `
+        <div class="src-card">
+          <div class="src-top"><b>${esc(src.label || "stream")}</b>${meta}<span class="spacer"></span>
+            <span class="copy-btn" data-copy="${esc(src.url)}">copy URL</span></div>
+          <div class="src-body">
+            <div class="src-url"><code>${esc(src.url)}</code></div>
+            ${headers ? `<table class="hdr-table"><tr><th>Header</th><th>Value</th></tr>${headers}</table>` : ""}
+            ${subs ? `<div class="sub-row" style="gap:14px">${subs}</div>` : ""}
+          </div>
+        </div>`;
+    }).join("");
+    $("pg-result").innerHTML = head + cards;
+  };
+  $("pg-result").addEventListener("click", (ev) => {
+    const btn = ev.target.closest("[data-copy]");
+    if (btn) copyText(btn.dataset.copy);
+  });
+
+  /* ---- copy buttons on code blocks ---- */
+  document.querySelectorAll("pre").forEach((pre) => {
+    const btn = document.createElement("button");
+    btn.className = "copy";
+    btn.textContent = "copy";
+    btn.addEventListener("click", () => {
+      const clone = pre.cloneNode(true);
+      const self = clone.querySelector(".copy");
+      if (self) self.remove();
+      copyText(clone.innerText.trim(), "Copied command");
+    });
+    pre.appendChild(btn);
+  });
 
   /* ---- boot ---- */
   watchReveals();
+  loadProviders();
+  loadStats();
+  renderHistory();
   route();
 })();
 </script>

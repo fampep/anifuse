@@ -11,6 +11,8 @@
 vendor/
 coverage.out
 *.test
+.gocache/
+.gotmp/
 
 # Editor
 .idea/
