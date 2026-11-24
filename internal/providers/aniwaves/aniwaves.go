@@ -433,6 +433,7 @@ func playable(media, playlist string, subtitles []protocol.SubtitleTrack, dub bo
 	}
 	return &protocol.Source{
 		URL: media,
+		HLS: true,
 		Headers: map[string]string{
 			"Referer":    embedOrigin(media),
 			"User-Agent": UserAgent,
@@ -528,12 +529,12 @@ func jsonString(payload, key string) (string, bool) {
 }
 
 var (
-	malRe             = regexp.MustCompile(`(?i)\bmal:\d+\b`)
-	heightRe          = regexp.MustCompile(`(?i)RESOLUTION=\d+x(\d+)`)
-	cardRe            = regexp.MustCompile(`(?is)<a\s+href="(/watch/[^"#?]+)"[\s\S]*?<a\s+class="name\s+d-title"[^>]*>([^<]+)</a>`)
-	watchRe           = regexp.MustCompile(`^/watch/([^/]+)`)
-	trailingDigitsRe  = regexp.MustCompile(`(\d+)$`)
-	linkIDRe          = regexp.MustCompile(`data-link-id="([^"]+)"`)
-	dataIDRe          = regexp.MustCompile(`data-id="([^"]+)"`)
-	embedPrefixRe     = regexp.MustCompile(`/(embed-\d+)/`)
+	malRe            = regexp.MustCompile(`(?i)\bmal:\d+\b`)
+	heightRe         = regexp.MustCompile(`(?i)RESOLUTION=\d+x(\d+)`)
+	cardRe           = regexp.MustCompile(`(?is)<a\s+href="(/watch/[^"#?]+)"[\s\S]*?<a\s+class="name\s+d-title"[^>]*>([^<]+)</a>`)
+	watchRe          = regexp.MustCompile(`^/watch/([^/]+)`)
+	trailingDigitsRe = regexp.MustCompile(`(\d+)$`)
+	linkIDRe         = regexp.MustCompile(`data-link-id="([^"]+)"`)
+	dataIDRe         = regexp.MustCompile(`data-id="([^"]+)"`)
+	embedPrefixRe    = regexp.MustCompile(`/(embed-\d+)/`)
 )

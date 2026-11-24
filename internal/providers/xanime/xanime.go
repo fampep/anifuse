@@ -36,14 +36,14 @@ const (
 const api = Origin + "/z2/"
 
 const (
-	secret = "xanime-ph25-obfuscation-secret-key-2026"
+	secret   = "xanime-ph25-obfuscation-secret-key-2026"
 	maxPages = 12
 )
 
 const (
-	searchQuery = `query get_q27($select: SearchAnime_Select) { get_q27(select: $select) { items { id data { ani_id info_title info_slug al_id } } } }`
+	searchQuery   = `query get_q27($select: SearchAnime_Select) { get_q27(select: $select) { items { id data { ani_id info_title info_slug al_id } } } }`
 	episodesQuery = `query get_q01($select: AnimesEpisodesList_Select) { get_q01(select: $select) { paging { pages page } items { data { ep_id ep_index ep_sub_index sourcesNode_list { data { src_type } } } } } }`
-	videoQuery = `query get_q07($select: Episodes_Select) { get_q07(select: $select) { data { sourcesNode_list { data { src_type souPath m3u8_lists { iframe } track { label kind trackPath } } } } } }`
+	videoQuery    = `query get_q07($select: Episodes_Select) { get_q07(select: $select) { data { sourcesNode_list { data { src_type souPath m3u8_lists { iframe } track { label kind trackPath } } } } } }`
 )
 
 // Provider implements providers.Provider for xanime.app.
@@ -544,6 +544,7 @@ func playable(link mediaLink, playlist string, dub bool) *protocol.Source {
 	}
 	return &protocol.Source{
 		URL:       link.url,
+		HLS:       true,
 		Headers:   link.headers,
 		Label:     label,
 		Quality:   quality,

@@ -343,6 +343,7 @@ func playable(file, referer string, captions []protocol.SubtitleTrack, dub bool,
 	}
 	return &protocol.Source{
 		URL: file,
+		HLS: true,
 		Headers: map[string]string{
 			"Referer":    referer,
 			"Origin":     origin,
@@ -401,7 +402,7 @@ var (
 )
 
 var (
-	stateRe = regexp.MustCompile(`(?s)<script[^>]*id="state-data"[^>]*>\s*(\{.*?\})\s*</script>`)
+	stateRe  = regexp.MustCompile(`(?s)<script[^>]*id="state-data"[^>]*>\s*(\{.*?\})\s*</script>`)
 	packedRe = regexp.MustCompile(`(?s)eval\(function\(p,a,c,k,e,d\)\{[^{}]*?return p\}\((.+?),36,(\d+),'(.+?)'\.split\('\|'\)`)
 	fileRe   = regexp.MustCompile(`file\s*:\s*["']([^"']+)["']`)
 	trackRe  = regexp.MustCompile(`\{[^{}]*?file\s*:\s*"[^"]+"[^{}]*?\}`)

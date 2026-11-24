@@ -390,6 +390,7 @@ func playable(link mediaLink, playlist string, dub bool) *protocol.Source {
 	}
 	return &protocol.Source{
 		URL:       link.url,
+		HLS:       true,
 		Headers:   link.headers,
 		Label:     label,
 		Quality:   quality,

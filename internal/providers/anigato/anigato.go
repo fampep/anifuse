@@ -106,6 +106,7 @@ func (p *Provider) Resolve(ctx context.Context, req resolve.Request) ([]protocol
 		out = append(out, ranked{
 			source: protocol.Source{
 				URL: file,
+				HLS: true,
 				Headers: map[string]string{
 					"Referer":    p.origin + "/",
 					"Origin":     p.origin,
@@ -170,12 +171,12 @@ func (p *Provider) probe(ctx context.Context, fileURL, referer string) (int, str
 
 // apiWatch mirrors /api/watch/{id}/{audio}/{episode}.
 type apiWatch struct {
-	Success       bool     `json:"success"`
-	DubUnavailable bool    `json:"dubUnavailable"`
-	LoadingMore   bool     `json:"loadingMore"`
-	PrimaryPending bool    `json:"primaryPending"`
-	MainPending   bool     `json:"mainPending"`
-	Streams       []stream `json:"streams"`
+	Success        bool     `json:"success"`
+	DubUnavailable bool     `json:"dubUnavailable"`
+	LoadingMore    bool     `json:"loadingMore"`
+	PrimaryPending bool     `json:"primaryPending"`
+	MainPending    bool     `json:"mainPending"`
+	Streams        []stream `json:"streams"`
 }
 
 // StillLoading reports whether the site asked for a second pass.
@@ -200,8 +201,8 @@ func (w *apiWatch) streamsFor(dub bool) []stream {
 }
 
 type stream struct {
-	Type      string    `json:"type"`
-	URL       string    `json:"url"`
+	Type      string     `json:"type"`
+	URL       string     `json:"url"`
 	Subtitles []subtitle `json:"subtitles"`
 }
 

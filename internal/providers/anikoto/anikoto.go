@@ -281,6 +281,7 @@ func (p *Provider) collectPlayable(ctx context.Context, embeds []serverEmbed, re
 			quality, audio, rating := sourceMeta(shown, mode)
 			out = append(out, protocol.Source{
 				URL:           l.url,
+				HLS:           true,
 				Headers:       streamHeaders(resolved.origin),
 				Label:         shown,
 				StripBytes:    strip,

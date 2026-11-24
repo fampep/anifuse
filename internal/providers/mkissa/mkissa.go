@@ -64,8 +64,8 @@ type Provider struct {
 }
 
 type session struct {
-	epoch  int64
-	key    []byte
+	epoch   int64
+	key     []byte
 	untilMs int64
 }
 
@@ -134,7 +134,7 @@ func (p *Provider) openEpisode(ctx context.Context, found *showHit, mode string)
 		return nil, err
 	}
 	variables := map[string]any{
-		"showId":         found.id,
+		"showId":          found.id,
 		"translationType": mode,
 		"episodeString":   found.episodeString,
 	}

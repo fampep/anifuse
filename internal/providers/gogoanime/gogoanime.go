@@ -69,7 +69,7 @@ type gogoPlayer struct {
 }
 
 type gogoPending struct {
-	url   string
+	url    string
 	tracks []protocol.SubtitleTrack
 }
 
@@ -608,6 +608,7 @@ func playable(file, playlist, siteLabel string, dub bool, origin string, subtitl
 	}
 	return &protocol.Source{
 		URL: file,
+		HLS: true,
 		Headers: map[string]string{
 			"Referer":    origin + "/",
 			"Origin":     origin,

@@ -76,12 +76,12 @@ func TestFileAndCaptionsAreScopedToTheirArrays(t *testing.T) {
 func TestMediaURLStaysHTTPSAndPlayable(t *testing.T) {
 	cases := map[string]bool{
 		"https://strm.example/hls2/master.m3u8?t=1&s=2": true,
-		"https://strm.example/file.mp4":                  true,
-		"http://strm.example/master.m3u8":                false,
-		"https://user:pass@strm.example/master.m3u8":     false,
-		"https://strm.example/../master.m3u8":            false,
-		`https://strm.example/master.m3u8\x`:             false,
-		"/relative/master.m3u8":                          false,
+		"https://strm.example/file.mp4":                 true,
+		"http://strm.example/master.m3u8":               false,
+		"https://user:pass@strm.example/master.m3u8":    false,
+		"https://strm.example/../master.m3u8":           false,
+		`https://strm.example/master.m3u8\x`:            false,
+		"/relative/master.m3u8":                         false,
 	}
 	for raw, want := range cases {
 		if _, got := mediaURL(raw); got != want {
@@ -167,7 +167,6 @@ func TestResolveEndToEnd(t *testing.T) {
 		t.Fatalf("label = %q", sources[0].Label)
 	}
 }
-
 
 func TestLatestCardsKeepTitleEpisodeAndLink(t *testing.T) {
 	page := `<section class="yt-latest"><h2>Latest releases</h2><div class="yt-grid">

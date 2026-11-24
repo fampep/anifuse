@@ -55,9 +55,9 @@ func (p *Provider) Name() string    { return Name }
 func (p *Provider) SiteURL() string { return Origin }
 
 type show struct {
-	id     string
-	source string
-	title  string
+	id        string
+	source    string
+	title     string
 	anilistID int
 }
 
@@ -379,6 +379,7 @@ func playable(pend pending, playlist string, dub bool) *protocol.Source {
 	}
 	return &protocol.Source{
 		URL: pend.url,
+		HLS: true,
 		Headers: map[string]string{
 			"Referer":    EmbedOrigin + "/",
 			"Origin":     EmbedOrigin,

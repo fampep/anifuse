@@ -142,9 +142,9 @@ func (p *Provider) openEpisode(ctx context.Context, slug string, episode int, lo
 }
 
 type opened struct {
-	detail    string
-	playlist  string
-	captions  string
+	detail   string
+	playlist string
+	captions string
 }
 
 func (p *Provider) get(ctx context.Context, pageURL, referer, origin string) (httpx.Page, error) {
@@ -443,6 +443,7 @@ func playable(detail, playlist, captions string, dub bool) (*protocol.Source, er
 	}
 	return &protocol.Source{
 		URL: masterURL(id),
+		HLS: true,
 		Headers: map[string]string{
 			"Referer":    PlayerOrigin + "/",
 			"Origin":     PlayerOrigin,

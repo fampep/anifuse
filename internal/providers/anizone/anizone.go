@@ -641,6 +641,7 @@ func playable(mediaURL, playlist string, dub bool, tracks []protocol.SubtitleTra
 	}
 	return &protocol.Source{
 		URL: mediaURL,
+		HLS: true,
 		Headers: map[string]string{
 			"Referer":    Origin + "/",
 			"Origin":     Origin,

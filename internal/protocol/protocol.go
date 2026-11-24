@@ -33,6 +33,10 @@ type Source struct {
 	QualityRating string            `json:"qualityRating,omitempty"`
 	StripBytes    int               `json:"stripBytes,omitempty"`
 	Subtitles     []SubtitleTrack   `json:"subtitles,omitempty"`
+	// HLS forces HLS playback when the URL's path does not say .m3u8
+	// (anigato's proxy URL, animex's deeznuts.txt, xanime's .ico variants,
+	// MegaPlay extensionless masters).
+	HLS bool `json:"hls,omitempty"`
 }
 
 // ResolveResponse is the success body. An empty sources array is a failure.
