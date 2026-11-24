@@ -1,5 +1,6 @@
 # Binaries
 /anifuse
+/anifuse-linux
 /dist/
 *.exe
 

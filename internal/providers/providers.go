@@ -16,6 +16,7 @@ import (
 	"github.com/fampep/anifuse/internal/protocol"
 	"github.com/fampep/anifuse/internal/providers/anigato"
 	"github.com/fampep/anifuse/internal/providers/anihosts"
+	"github.com/fampep/anifuse/internal/providers/anikoto"
 	"github.com/fampep/anifuse/internal/providers/animegg"
 	"github.com/fampep/anifuse/internal/providers/animex"
 	"github.com/fampep/anifuse/internal/providers/aninz"
@@ -74,6 +75,7 @@ func NewRegistry() *Registry {
 			animex.New(),
 			gogoanime.New(),
 			anizone.New(),
+			anikoto.New(),
 		},
 		startedAt: time.Now(),
 		health:    make(map[string]*healthStat),

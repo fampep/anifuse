@@ -98,6 +98,7 @@ type HealthResponse struct {
 	Providers     int      `json:"providers"`
 	UptimeSeconds int64    `json:"uptimeSeconds"`
 	Unhealthy     []string `json:"unhealthy,omitempty"`
+	Demo          bool     `json:"demo,omitempty"`
 }
 
 // LatestEntry is one row of the aggregated newest-episodes feed. AnilistID

@@ -183,6 +183,9 @@ their ids.
 | `ANIFUSE_RESOLVE_TIMEOUT` | `30s` | overall deadline for one resolve race |
 | `ANIFUSE_RESOLVE_CACHE_TTL` | `10m` | how long a resolved answer is replayed |
 | `ANIFUSE_LATEST_CACHE_TTL` | `3m` | how long the latest feed is cached |
+| `ANIFUSE_TLS_CERT` / `ANIFUSE_TLS_KEY` | unset | certificate pair; set both to also serve HTTPS |
+| `ANIFUSE_TLS_PORT` | `443` | HTTPS port when a pair is set |
+| `ANIFUSE_DEMO` | unset | `1` labels the deployment as a public demo in `/healthz` |
 
 ## AniKitty install
 

@@ -39,7 +39,8 @@ const (
 )
 
 // Server carries the provider registry, the response caches, and the
-// request counters.
+// request counters. demo marks a public demo deployment: the flag surfaces
+// in /healthz so the landing page can label itself a demo.
 type Server struct {
 	registry       *providers.Registry
 	resolveCache   *cache.Cache
@@ -48,6 +49,7 @@ type Server struct {
 	latestGroup    *cache.Group
 	startedAt      time.Time
 	resolveTimeout time.Duration
+	demo           bool
 
 	total            int64
 	resolveRequests  int64
@@ -56,10 +58,11 @@ type Server struct {
 	latestCacheHits  int64
 }
 
-// NewServer builds the handler on the bundled registry. Caching knobs come
-// from the environment: ANIFUSE_RESOLVE_TIMEOUT (duration, default 30s),
+// NewServer builds the handler on the bundled registry. demo labels the
+// deployment as a public demo in /healthz. Caching knobs come from the
+// environment: ANIFUSE_RESOLVE_TIMEOUT (duration, default 30s),
 // ANIFUSE_RESOLVE_CACHE_TTL and ANIFUSE_LATEST_CACHE_TTL.
-func NewServer(registry *providers.Registry) *Server {
+func NewServer(registry *providers.Registry, demo bool) *Server {
 	return &Server{
 		registry:       registry,
 		resolveCache:   cache.New(envDuration("ANIFUSE_RESOLVE_CACHE_TTL", resolveCacheTTL), 2048),
@@ -68,6 +71,7 @@ func NewServer(registry *providers.Registry) *Server {
 		latestGroup:    &cache.Group{},
 		startedAt:      time.Now(),
 		resolveTimeout: envDuration("ANIFUSE_RESOLVE_TIMEOUT", defaultResolveTimeout),
+		demo:           demo,
 	}
 }
 
@@ -125,6 +129,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		Providers:     len(s.registry.Providers()),
 		UptimeSeconds: int64(time.Since(s.startedAt).Seconds()),
 		Unhealthy:     unhealthy,
+		Demo:          s.demo,
 	})
 }
 

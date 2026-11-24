@@ -26,7 +26,7 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `anihosts` | anihosts.xyz | ✅ shipped |
 | `anigato` | anigato.lol | ✅ shipped |
 | `animegg` | animegg.org | ✅ shipped |
-| `anikoto` | anikoto.cz (+ kotoplay.to fallback) | 🔜 porting |
+| `anikoto` | anikoto.cz (+ kotoplay.to fallback) | ✅ shipped |
 | `gotaku` | gotaku.to | 🔜 porting (segment unwrap stays on-device) |
 | `reanime` | reanime.cz | 🔜 porting |
 | `mkissa` | mkissa.to | ✅ shipped |
@@ -59,6 +59,16 @@ go run ./cmd/api
 ```
 
 `http://localhost:8080/healthz` → `{"status":"ok",...}`.
+
+## Live demo
+
+A demo deployment of this exact repository runs at
+**<https://143-246-203-212.sslip.io>** (HTTPS via Let's Encrypt, auto-renewed).
+Its landing page is the playground: it resolves real episodes against the
+live sites, so you can watch the race, the cache, and the provider health
+board work before self-hosting anything. Treat it as a demo, not a service:
+availability is best-effort, and it resolves nothing you could not scrape
+yourself.
 
 ## API
 
@@ -170,6 +180,9 @@ Request counters and per-provider stats for dashboards.
 | `ANIFUSE_RESOLVE_TIMEOUT` | `30s` | overall deadline for one resolve race |
 | `ANIFUSE_RESOLVE_CACHE_TTL` | `10m` | how long a resolved answer is replayed |
 | `ANIFUSE_LATEST_CACHE_TTL` | `3m` | how long the latest feed is cached |
+| `ANIFUSE_TLS_CERT` / `ANIFUSE_TLS_KEY` | unset | certificate pair; set both to also serve HTTPS |
+| `ANIFUSE_TLS_PORT` | `443` | HTTPS port when a pair is set |
+| `ANIFUSE_DEMO` | unset | `1` labels the deployment as a public demo in `/healthz` |
 
 ## Design
 
