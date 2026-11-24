@@ -31,7 +31,7 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `reanime` | reanime.cz | 🔜 porting |
 | `mkissa` | mkissa.to | 🔜 porting |
 | `kaa` | kaa.lt | ✅ shipped |
-| `animex` | animex.one | 🔜 porting |
+| `animex` | animex.one | ✅ shipped |
 | `xanime` | xanime.app | 🔜 porting |
 | `aninz` | ani.nz | 🔜 porting |
 | `gogoanime` | gogoanime.by | 🔜 porting |

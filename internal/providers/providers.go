@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/fampep/anifuse/internal/protocol"
 	"github.com/fampep/anifuse/internal/providers/anigato"
 	"github.com/fampep/anifuse/internal/providers/anihosts"
 	"github.com/fampep/anifuse/internal/providers/animegg"
+	"github.com/fampep/anifuse/internal/providers/animex"
 	"github.com/fampep/anifuse/internal/providers/kaa"
 	"github.com/fampep/anifuse/internal/resolve"
 )
@@ -30,6 +32,7 @@ func NewRegistry() *Registry {
 			anigato.New(),
 			animegg.New(),
 			kaa.New(),
+			animex.New(),
 		},
 	}
 }
@@ -115,33 +118,47 @@ func (r *Registry) Latest(ctx context.Context, providerID string, limit int) ([]
 		id      string
 		entries []protocol.LatestEntry
 	}
-	var feeds []feed
-	for _, p := range attempts {
+	// Fetch every feed in parallel so one slow site does not stall the
+	// whole list; the round-robin below restores interleaved order.
+	feeds := make([]feed, len(attempts))
+	var wg sync.WaitGroup
+	for i, p := range attempts {
 		feeder, ok := p.(resolve.LatestProvider)
 		if !ok {
 			continue
 		}
-		entries, err := feeder.Latest(ctx, limit)
-		if err != nil || len(entries) == 0 {
-			continue
+		wg.Add(1)
+		go func(slot int, feeder resolve.LatestProvider, id string) {
+			defer wg.Done()
+			entries, err := feeder.Latest(ctx, limit)
+			if err != nil || len(entries) == 0 {
+				return
+			}
+			for j := range entries {
+				entries[j].Provider = id
+			}
+			feeds[slot] = feed{id: id, entries: entries}
+		}(i, feeder, p.ID())
+	}
+	wg.Wait()
+	ordered := make([]feed, 0, len(attempts))
+	for _, f := range feeds {
+		if len(f.entries) > 0 {
+			ordered = append(ordered, f)
 		}
-		for i := range entries {
-			entries[i].Provider = p.ID()
-		}
-		feeds = append(feeds, feed{id: p.ID(), entries: entries})
 	}
 
 	var out []protocol.LatestEntry
-	for round := 0; len(out) < limit && len(feeds) > 0; round++ {
+	for round := 0; len(out) < limit && len(ordered) > 0; round++ {
 		added := false
-		for i := range feeds {
+		for i := range ordered {
 			if len(out) >= limit {
 				break
 			}
-			if round >= len(feeds[i].entries) {
+			if round >= len(ordered[i].entries) {
 				continue
 			}
-			out = append(out, feeds[i].entries[round])
+			out = append(out, ordered[i].entries[round])
 			added = true
 		}
 		if !added {

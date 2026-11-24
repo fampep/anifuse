@@ -16,7 +16,7 @@ parser tests that mirror its Kotlin test.
 | `reanime` | `providers/reanime/ReanimeServer.kt` | ✅ on-device only | Flix WASM crypto; playlist and segments are unwrapped on the phone |
 | `mkissa` | `providers/mkissa/MkissaServer.kt` | ✅ on-device only | aa-crypto lane cannot travel over the HTTP protocol |
 | `kaa` | `providers/kaa/KaaServer.kt` | ✅ | vidstream master on hls.krussdomi.com |
-| `animex` | `providers/animex/AnimexServer.kt` | 🔜 | |
+| `animex` | `providers/animex/AnimexServer.kt` | ✅ | GraphQL search + REST sources, HLS even as deeznuts.txt |
 | `xanime` | `providers/xanime/XanimeServer.kt` | 🔜 | |
 | `aninz` | `providers/aninz/AniNzServer.kt` | 🔜 | |
 | `gogoanime` | `providers/gogoanime/GogoAnimeServer.kt` | 🔜 | |
