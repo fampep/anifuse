@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -19,11 +20,26 @@ type Client struct {
 }
 
 // NewClient builds a client with the given user agent and overall timeout.
+// When the ANIFUSE_PROXY environment variable names an http, https or
+// socks5 proxy URL (optionally with user:password), every request goes
+// through it.
 func NewClient(userAgent string, timeout time.Duration) *Client {
+	return newClient(userAgent, timeout, os.Getenv("ANIFUSE_PROXY"))
+}
+
+func newClient(userAgent string, timeout time.Duration, proxyURL string) *Client {
+	transport := &http.Transport{
+		Proxy:                 proxyFunc(proxyURL),
+		MaxIdleConns:          16,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: time.Second,
+	}
 	return &Client{
 		UserAgent: userAgent,
 		http: &http.Client{
-			Timeout: timeout,
+			Timeout:   timeout,
+			Transport: transport,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				if len(via) >= 8 {
 					return errors.New("too many redirects")
@@ -31,6 +47,29 @@ func NewClient(userAgent string, timeout time.Duration) *Client {
 				return nil
 			},
 		},
+	}
+}
+
+// proxyFunc resolves the proxy setting: explicit URL first, then the
+// standard HTTP_PROXY / HTTPS_PROXY environment variables.
+func proxyFunc(configured string) func(*http.Request) (*url.URL, error) {
+	proxyFromEnv := http.ProxyFromEnvironment
+	return func(req *http.Request) (*url.URL, error) {
+		value := strings.TrimSpace(configured)
+		if value == "" || strings.EqualFold(value, "none") {
+			return proxyFromEnv(req)
+		}
+		parsed, err := url.Parse(value)
+		if err != nil || parsed.Scheme == "" {
+			return nil, fmt.Errorf("anifuse: bad ANIFUSE_PROXY %q", value)
+		}
+		switch parsed.Scheme {
+		case "http", "https":
+			// Supported by net/http directly.
+		default:
+			return nil, fmt.Errorf("anifuse: unsupported proxy scheme %q", parsed.Scheme)
+		}
+		return parsed, nil
 	}
 }
 

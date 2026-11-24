@@ -120,6 +120,18 @@ curl -sS "http://localhost:8080/v1/latest"
 
 The landing page renders this feed live under **Latest episodes**.
 
+### Outbound proxy
+
+Every provider request can travel through one outbound proxy. Set the
+environment variable and restart:
+
+```bash
+ANIFUSE_PROXY="http://user:password@host:port" ./anifuse
+```
+
+`http` and `https` proxy URLs are supported; unset (or `none`) falls back to
+the standard `HTTP_PROXY`/`HTTPS_PROXY` environment variables.
+
 ### `GET /v1/providers`
 
 Lists the bundled providers (`id`, `name`, `siteUrl`).
