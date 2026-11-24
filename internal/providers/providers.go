@@ -16,6 +16,7 @@ import (
 	"github.com/fampep/anifuse/internal/providers/animegg"
 	"github.com/fampep/anifuse/internal/providers/animex"
 	"github.com/fampep/anifuse/internal/providers/kaa"
+	"github.com/fampep/anifuse/internal/providers/xanime"
 	"github.com/fampep/anifuse/internal/resolve"
 )
 
@@ -32,6 +33,7 @@ func NewRegistry() *Registry {
 			anigato.New(),
 			animegg.New(),
 			kaa.New(),
+			xanime.New(),
 			animex.New(),
 		},
 	}

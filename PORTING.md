@@ -17,7 +17,7 @@ parser tests that mirror its Kotlin test.
 | `mkissa` | `providers/mkissa/MkissaServer.kt` | ✅ on-device only | aa-crypto lane cannot travel over the HTTP protocol |
 | `kaa` | `providers/kaa/KaaServer.kt` | ✅ | vidstream master on hls.krussdomi.com |
 | `animex` | `providers/animex/AnimexServer.kt` | ✅ | GraphQL search + REST sources, HLS even as deeznuts.txt |
-| `xanime` | `providers/xanime/XanimeServer.kt` | 🔜 | |
+| `xanime` | `providers/xanime/XanimeServer.kt` | ✅ | AES-GCM request envelope ported; master is HLS, variants a-index-….ico |
 | `aninz` | `providers/aninz/AniNzServer.kt` | 🔜 | |
 | `gogoanime` | `providers/gogoanime/GogoAnimeServer.kt` | 🔜 | |
 | `aniwaves` | `providers/aniwaves/AniwavesServer.kt` | 🔜 | |

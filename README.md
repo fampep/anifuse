@@ -32,7 +32,7 @@ Every provider is one package under [`internal/providers`](internal/providers). 
 | `mkissa` | mkissa.to | 🔜 porting |
 | `kaa` | kaa.lt | ✅ shipped |
 | `animex` | animex.one | ✅ shipped |
-| `xanime` | xanime.app | 🔜 porting |
+| `xanime` | xanime.app | ✅ shipped |
 | `aninz` | ani.nz | 🔜 porting |
 | `gogoanime` | gogoanime.by | 🔜 porting |
 | `animegg` | animegg.org | ✅ shipped |
