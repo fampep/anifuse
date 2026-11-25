@@ -6,6 +6,13 @@
 
 *A self-hosted Go service that bundles anime site resolvers behind a single `/v1/resolve` endpoint.*
 
+> **Rebrand.** AniFuse is the new name of the **AniKitty** ecosystem: the
+> Android app, this resolver API and the extension protocol all carry the
+> AniFuse brand. The app repo is
+> [anikitty-android](https://github.com/anikitty/anikitty-android) and the
+> extension catalog lives in
+> [anikitty-extensions](https://github.com/fampep/anikitty-extensions).
+
 [![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white)](go.mod)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![License](https://img.shields.io/badge/License-Apache_2.0-D22128)](LICENSE)
