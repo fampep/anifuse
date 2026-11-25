@@ -96,6 +96,33 @@ type MetricsResponse struct {
 	Providers     []ProviderStat `json:"providers"`
 }
 
+// SearchResult is one row of GET /v1/search (AniList browse).
+type SearchResult struct {
+	AnilistID int    `json:"anilistId"`
+	Title     string `json:"title"`
+	ImageURL  string `json:"imageUrl,omitempty"`
+	Episodes  int    `json:"episodes,omitempty"`
+	Status    string `json:"status,omitempty"`
+}
+
+// SearchResponse is the GET /v1/search body.
+type SearchResponse struct {
+	Results     []SearchResult `json:"results"`
+	HasNextPage bool           `json:"hasNextPage"`
+}
+
+// AnimeDetail is the GET /v1/anime/{id} body.
+type AnimeDetail struct {
+	AnilistID   int      `json:"anilistId"`
+	Title       string   `json:"title"`
+	Description string   `json:"description,omitempty"`
+	ImageURL    string   `json:"imageUrl,omitempty"`
+	Episodes    int      `json:"episodes,omitempty"`
+	Status      string   `json:"status,omitempty"`
+	Genres      []string `json:"genres,omitempty"`
+	SeasonYear  int      `json:"seasonYear,omitempty"`
+}
+
 // HealthResponse is the GET /healthz body.
 type HealthResponse struct {
 	Status        string   `json:"status"` // ok | degraded

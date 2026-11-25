@@ -49,6 +49,7 @@ type Server struct {
 	resolveGroup   *cache.Group
 	latestGroup    *cache.Group
 	gotakuProxy    *httpx.Client
+	anilist        *AniListBrowser
 	startedAt      time.Time
 	resolveTimeout time.Duration
 	demo           bool
@@ -72,6 +73,7 @@ func NewServer(registry *providers.Registry, demo bool) *Server {
 		resolveGroup:   &cache.Group{},
 		latestGroup:    &cache.Group{},
 		gotakuProxy:    httpx.NewClient(gotakuProxyUserAgent, 60*time.Second),
+		anilist:        newAniListBrowser(),
 		startedAt:      time.Now(),
 		resolveTimeout: envDuration("ANIFUSE_RESOLVE_TIMEOUT", defaultResolveTimeout),
 		demo:           demo,
@@ -86,6 +88,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /metrics", s.handleMetrics)
 	mux.HandleFunc("GET /v1/providers", s.handleProviders)
 	mux.HandleFunc("GET /v1/latest", s.handleLatest)
+	mux.HandleFunc("GET /v1/search", s.handleSearch)
+	mux.HandleFunc("GET /v1/anime/{id}", s.handleAnime)
 	mux.HandleFunc("POST /v1/resolve", s.handleResolve)
 	mux.HandleFunc("GET /v1/gotaku/play", s.handleGotakuPlay)
 	mux.HandleFunc("GET /v1/gotaku/seg", s.handleGotakuSeg)
